@@ -1,0 +1,181 @@
+# Policy: Image Signature Verification Enforcement
+# Framework Mapping: SOC2 CC8.1, HIPAA 164.312(c)(1), ISO 27001 A.12.5.1
+# Severity: HIGH
+# Description: Ensures all container images are signed and verified before deployment
+
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-image-signature
+  annotations:
+    policies.kyverno.io/title: Require Image Signature Verification
+    policies.kyverno.io/category: Security, Supply Chain
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Ensures all container images are signed with Cosign/Sigstore and verified
+      before deployment. This policy enforces supply chain security by preventing
+      unsigned or unverified images from running in the cluster.
+    policies.kyverno.io/frameworks: SOC2 CC8.1, HIPAA 164.312(c)(1), ISO 27001 A.12.5.1
+spec:
+  validationFailureAction: Enforce
+  background: true
+  failurePolicy: Fail
+  rules:
+  - name: verify-image-signature
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          - Deployment
+          - StatefulSet
+          - DaemonSet
+          - Job
+          - CronJob
+    verifyImages:
+    - imageReferences:
+      - "registry.company.com/*"
+      - "*.registry.company.com/*"
+      required: true
+      attestors:
+      - count: 1
+        entries:
+        - keys:
+            publicKeys: |-
+              -----BEGIN PUBLIC KEY-----
+              MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExB6+H6054/W1SJgs5JR6AJr6J35J
+              RCTfQ5s1kD+hGMSE1rH7s46hmXEeyhnlRnaGF8iljnYqRqE+d4K3d7Q6VQ==
+              -----END PUBLIC KEY-----
+  - name: require-image-digest
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          - Deployment
+          - StatefulSet
+          - DaemonSet
+          - Job
+          - CronJob
+    validate:
+      message: "Images must be referenced by digest (sha256) for immutability and verification"
+      pattern:
+        spec:
+          containers:
+          - image: "*@sha256:*"
+  - name: block-latest-tag
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          - Deployment
+          - StatefulSet
+          - DaemonSet
+          - Job
+          - CronJob
+    validate:
+      message: "Using 'latest' tag is prohibited. Use specific version tags with digests."
+      pattern:
+        spec:
+          containers:
+          - image: "!*:latest"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image-verification-policy-config
+  namespace: kyverno
+data:
+  remediation.md: |
+    # Remediation Guide: Image Signature Verification Failures
+
+    ## Error: Image signature verification failed
+
+    ### Root Cause
+    The container image you are trying to deploy is not signed or the signature
+    cannot be verified using the organization's public key.
+
+    ### Remediation Steps
+
+    1. **Sign your images using Cosign:**
+       ```bash
+       # Sign the image
+       cosign sign --key cosign.key registry.company.com/app:v1.0.0
+
+       # Verify the signature (test)
+       cosign verify --key cosign.pub registry.company.com/app:v1.0.0
+       ```
+
+    2. **Update your CI/CD pipeline:**
+       Add image signing as a post-build step:
+       ```yaml
+       - name: Sign container image
+         run: |
+           cosign sign --key ${{ secrets.COSIGN_KEY }} \
+             --tlog-upload=true \
+             ${IMAGE_NAME}@${IMAGE_DIGEST}
+       ```
+
+    3. **Use image digest references:**
+       Always reference images by digest in Kubernetes manifests:
+       ```yaml
+       containers:
+       - name: app
+         image: registry.company.com/app:v1.0.0@sha256:abc123...
+       ```
+
+    4. **Obtain signing keys:**
+       Contact the Security team to get organization signing keys:
+       - Email: security@company.com
+       - Slack: #security-team
+       - Ticket: https://jira.company.com/browse/SEC
+
+    ## Error: Image must be referenced by digest
+
+    ### Remediation
+    Update your manifest to include the image digest:
+    ```bash
+    # Get the digest of an image
+    docker inspect registry.company.com/app:v1.0.0 \
+      --format='{{index .RepoDigests 0}}'
+
+    # Output: registry.company.com/app:v1.0.0@sha256:abc123...
+    ```
+
+    ## Error: 'latest' tag is prohibited
+
+    ### Remediation
+    - Use specific semantic version tags (e.g., v1.0.0, v2.1.3)
+    - Include the digest for immutability
+    - Never use 'latest' in production deployments
+
+---
+apiVersion: constraint.gatekeeper.sh/v1beta1
+kind: RequireImageSignature
+metadata:
+  name: require-signed-images
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+    - apiGroups: [""]
+      kinds: ["Pod"]
+    - apiGroups: ["apps"]
+      kinds: ["Deployment", "StatefulSet", "DaemonSet"]
+    - apiGroups: ["batch"]
+      kinds: ["Job", "CronJob"]
+    namespaceSelector:
+      matchExpressions:
+      - key: environment
+        operator: In
+        values: ["production", "staging"]
+  parameters:
+    allowedRegistries:
+    - "registry.company.com"
+    - "gcr.io/company-project"
+    requireDigest: true
+    requireSignature: true

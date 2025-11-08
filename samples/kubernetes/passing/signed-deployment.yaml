@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+  labels:
+    environment: production
+    security: high
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  namespace: production
+  labels:
+    app: web-app
+    tier: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+        tier: frontend
+      annotations:
+        # Image signature verification annotations
+        cosign.sigstore.dev/signature: "verified"
+        image-signature: "sha256:abc123def456..."
+    spec:
+      containers:
+      - name: web-app
+        # Signed image from verified registry
+        image: registry.company.com/web-app:v1.2.3@sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-service
+  namespace: production
+  labels:
+    app: api-service
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-service
+  template:
+    metadata:
+      labels:
+        app: api-service
+        tier: backend
+      annotations:
+        cosign.sigstore.dev/signature: "verified"
+        image-signature: "sha256:fed456cba321..."
+    spec:
+      containers:
+      - name: api
+        # Signed image with digest pinning
+        image: registry.company.com/api-service:v2.0.1@sha256:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: url
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-image-signatures
+  annotations:
+    policies.kyverno.io/title: Verify Image Signatures
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+  - name: verify-signature
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    verifyImages:
+    - imageReferences:
+      - "registry.company.com/*"
+      attestors:
+      - count: 1
+        entries:
+        - keys:
+            publicKeys: |-
+              -----BEGIN PUBLIC KEY-----
+              MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE...
+              -----END PUBLIC KEY-----

@@ -4,6 +4,7 @@ export enum View {
   RiskRegister = 'RISK_REGISTER',
   ProjectPlan = 'PROJECT_PLAN',
   Presentation = 'PRESENTATION',
+  Verifier = 'VERIFIER',
 }
 
 export interface Kpi {
