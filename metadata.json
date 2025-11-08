@@ -1,0 +1,5 @@
+{
+  "name": "ICRAF: Integrated Cyber Risk & Compliance Dashboard",
+  "description": "A proof-of-concept dashboard simulating an Integrated Cyber Risk and Compliance Automation Framework (ICRAF). It visualizes data from SIEM, ITSM, and GRC tools, providing a unified view of security posture, risk management, and compliance adherence.",
+  "requestFramePermissions": []
+}
