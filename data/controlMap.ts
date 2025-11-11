@@ -40,13 +40,13 @@ export const CONTROL_MAP: ControlMapping[] = [
           id: 'CC6.1',
           name: 'Logical and Physical Access Controls',
           description:
-            'The entity implements logical access security software, infrastructure, and architectures over protected information assets to protect them from security events to meet the entity's objectives.',
+            'The entity implements logical access security software, infrastructure, and architectures over protected information assets to protect them from security events to meet the entity\'s objectives.',
         },
         {
           id: 'CC6.7',
           name: 'Encryption of Data at Rest',
           description:
-            'The entity restricts the transmission, movement, and removal of information to authorized internal and external users and processes, and protects it during transmission, movement, or removal to meet the entity's objectives.',
+            'The entity restricts the transmission, movement, and removal of information to authorized internal and external users and processes, and protects it during transmission, movement, or removal to meet the entity\'s objectives.',
         },
       ],
       hipaa: [
@@ -101,7 +101,7 @@ export const CONTROL_MAP: ControlMapping[] = [
           id: 'CC7.2',
           name: 'System Monitoring',
           description:
-            'The entity monitors system components and the operation of those components for anomalies that are indicative of malicious acts, natural disasters, and errors affecting the entity's ability to meet its objectives; anomalies are analyzed to determine whether they represent security events.',
+            'The entity monitors system components and the operation of those components for anomalies that are indicative of malicious acts, natural disasters, and errors affecting the entity\'s ability to meet its objectives; anomalies are analyzed to determine whether they represent security events.',
         },
       ],
       hipaa: [
