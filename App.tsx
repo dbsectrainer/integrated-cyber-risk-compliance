@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { View } from './types';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
+import Verifier from './components/Verifier';
 import Governance from './components/Governance';
 import RiskRegister from './components/RiskRegister';
 import ProjectPlan from './components/ProjectPlan';
@@ -16,6 +17,8 @@ const App: React.FC = () => {
     switch (currentView) {
       case View.Dashboard:
         return <Dashboard />;
+      case View.Verifier:
+        return <Verifier />;
       case View.Governance:
         return <Governance />;
       case View.RiskRegister:

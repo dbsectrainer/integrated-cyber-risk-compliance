@@ -1,0 +1,71 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.5.0",
+  "planned_values": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "aws_s3_bucket.legacy_bucket",
+          "mode": "managed",
+          "type": "aws_s3_bucket",
+          "name": "legacy_bucket",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "bucket": "company-legacy-data-bucket",
+            "tags": {
+              "Environment": "Production",
+              "Legacy": "true"
+            }
+          }
+        },
+        {
+          "address": "aws_ebs_volume.unencrypted_volume",
+          "mode": "managed",
+          "type": "aws_ebs_volume",
+          "name": "unencrypted_volume",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 0,
+          "values": {
+            "availability_zone": "us-east-1a",
+            "encrypted": false,
+            "size": 50,
+            "type": "gp2",
+            "tags": {
+              "Name": "legacy-volume"
+            }
+          }
+        },
+        {
+          "address": "aws_rds_cluster.legacy_database",
+          "mode": "managed",
+          "type": "aws_rds_cluster",
+          "name": "legacy_database",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 1,
+          "values": {
+            "cluster_identifier": "legacy-db-cluster",
+            "engine": "aurora-mysql",
+            "storage_encrypted": false,
+            "database_name": "legacy_db",
+            "master_username": "admin"
+          }
+        },
+        {
+          "address": "aws_db_instance.standalone_db",
+          "mode": "managed",
+          "type": "aws_db_instance",
+          "name": "standalone_db",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 1,
+          "values": {
+            "identifier": "standalone-mysql-db",
+            "engine": "mysql",
+            "instance_class": "db.t3.micro",
+            "allocated_storage": 20
+          }
+        }
+      ]
+    }
+  }
+}

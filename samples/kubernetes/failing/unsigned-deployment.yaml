@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development
+  labels:
+    environment: development
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: legacy-app
+  namespace: development
+  labels:
+    app: legacy-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: legacy-app
+  template:
+    metadata:
+      labels:
+        app: legacy-app
+    spec:
+      containers:
+      - name: legacy-app
+        # Unsigned image using 'latest' tag (anti-pattern)
+        image: docker.io/legacy-app:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DEBUG
+          value: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-service
+  namespace: development
+  labels:
+    app: test-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-service
+  template:
+    metadata:
+      labels:
+        app: test-service
+    spec:
+      containers:
+      - name: test-service
+        # Public registry image without signature verification
+        image: nginx:1.21
+        ports:
+        - containerPort: 80
+      - name: sidecar
+        # Unknown registry without verification
+        image: quay.io/random/sidecar:v1.0
+        ports:
+        - containerPort: 9090
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: monitoring-agent
+  namespace: development
+spec:
+  selector:
+    matchLabels:
+      app: monitoring
+  template:
+    metadata:
+      labels:
+        app: monitoring
+    spec:
+      containers:
+      - name: agent
+        # No image digest, no signature verification
+        image: monitoring/agent:alpine
+        volumeMounts:
+        - name: host-root
+          mountPath: /host
+          readOnly: true
+      volumes:
+      - name: host-root
+        hostPath:
+          path: /
