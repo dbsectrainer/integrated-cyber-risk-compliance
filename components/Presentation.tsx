@@ -61,11 +61,11 @@ const Presentation: React.FC = () => {
     const Icon = slide.icon;
 
     return (
-        <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-6 sm:p-8 flex flex-col justify-between min-h-[60vh]">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-6 sm:p-8 flex flex-col justify-between min-h-[60vh]">
             <div className="flex-1 flex flex-col items-center justify-center text-center">
                 <Icon className="w-16 h-16 text-blue-500 mb-6"/>
-                <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-white">{slide.title}</h2>
-                <ul className="space-y-4 text-gray-300 max-w-2xl text-base sm:text-lg">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900 dark:text-white">{slide.title}</h2>
+                <ul className="space-y-4 text-gray-700 dark:text-gray-300 max-w-2xl text-base sm:text-lg">
                     {slide.points.map((point, index) => (
                         <li key={index} className="flex items-start">
                             <ArrowRight className="text-blue-500 mr-3 mt-1.5 flex-shrink-0" size={20} />
@@ -74,10 +74,10 @@ const Presentation: React.FC = () => {
                     ))}
                 </ul>
             </div>
-            <div className="flex justify-between items-center mt-8 pt-4 border-t border-gray-700">
+            <div className="flex justify-between items-center mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                     onClick={prevSlide}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors"
                 >
                     <ArrowLeft size={16} /> Previous
                 </button>
@@ -86,7 +86,7 @@ const Presentation: React.FC = () => {
                         <button
                             key={index}
                             onClick={() => setCurrentSlide(index)}
-                            className={`w-3 h-3 rounded-full ${currentSlide === index ? 'bg-blue-500' : 'bg-gray-600 hover:bg-gray-500'}`}
+                            className={`w-3 h-3 rounded-full ${currentSlide === index ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'}`}
                         />
                     ))}
                 </div>

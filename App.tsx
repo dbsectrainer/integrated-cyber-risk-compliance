@@ -9,6 +9,7 @@ import RiskRegister from './components/RiskRegister';
 import ProjectPlan from './components/ProjectPlan';
 import Presentation from './components/Presentation';
 import { GitFork } from 'lucide-react';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(View.Dashboard);
@@ -33,21 +34,23 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-gray-200">
-      <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">ICRAF Dashboard</h1>
-            <div className="flex items-center space-x-2 text-gray-400">
-              <GitFork size={16} />
-              <span className="text-sm font-medium">PoC v1.0</span>
-            </div>
-        </div>
-        <div className="animate-fade-in">
-          {renderView()}
-        </div>
-      </main>
-    </div>
+    <ThemeProvider>
+      <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200">
+        <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">ICRAF Dashboard</h1>
+              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+                <GitFork size={16} />
+                <span className="text-sm font-medium">PoC v1.0</span>
+              </div>
+          </div>
+          <div className="animate-fade-in">
+            {renderView()}
+          </div>
+        </main>
+      </div>
+    </ThemeProvider>
   );
 };
 

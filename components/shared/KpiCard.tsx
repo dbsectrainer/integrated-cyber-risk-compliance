@@ -14,17 +14,17 @@ const KpiCard: React.FC<KpiCardProps> = ({ kpi }) => {
   const changeColor = isPositiveChange ? 'text-green-500' : 'text-red-500';
 
   return (
-    <Card className="flex flex-col justify-between hover:bg-gray-700/50 transition-colors duration-300">
+    <Card className="flex flex-col justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-300">
       <div>
-        <p className="text-sm font-medium text-gray-400">{kpi.title}</p>
-        <p className="text-3xl font-bold text-white mt-2">{kpi.value}</p>
+        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{kpi.title}</p>
+        <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{kpi.value}</p>
       </div>
       <div className="flex items-center justify-between mt-4 text-xs sm:text-sm">
         <div className={`flex items-center font-semibold ${changeColor}`}>
           {isIncrease ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           <span>{kpi.change}</span>
         </div>
-        <p className="text-gray-400">{kpi.description}</p>
+        <p className="text-gray-600 dark:text-gray-400">{kpi.description}</p>
       </div>
     </Card>
   );

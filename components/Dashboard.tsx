@@ -33,10 +33,10 @@ const Dashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2">
-                    <h2 className="text-xl font-bold mb-4 text-white">Recent High-Severity Incidents</h2>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Recent High-Severity Incidents</h2>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="border-b border-gray-600 text-sm text-gray-400">
+                            <thead className="border-b border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-400">
                                 <tr>
                                     <th className="py-2 px-4">Severity</th>
                                     <th className="py-2 px-4">Title</th>
@@ -46,7 +46,7 @@ const Dashboard: React.FC = () => {
                             </thead>
                             <tbody>
                                 {incidentData.slice(0, 5).map((incident) => (
-                                    <tr key={incident.id} className="border-b border-gray-700 hover:bg-gray-700/50">
+                                    <tr key={incident.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-900 dark:text-gray-200">
                                         <td className="py-3 px-4">
                                             <div className="flex items-center gap-2">
                                                 <SeverityIcon severity={incident.severity} />
@@ -62,25 +62,25 @@ const Dashboard: React.FC = () => {
                                                 {incident.status}
                                             </span>
                                         </td>
-                                        <td className="py-3 px-4 text-gray-400">{incident.source}</td>
+                                        <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{incident.source}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
                 </Card>
-                
+
                 <Card>
-                    <h2 className="text-xl font-bold mb-4 text-white">NIST CSF Coverage</h2>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">NIST CSF Coverage</h2>
                     <div style={{ width: '100%', height: 300 }}>
                         <ResponsiveContainer>
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
                                 <PolarGrid stroke="#444444" />
-                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#e5e7eb', fontSize: 12 }} />
+                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#9ca3af', fontSize: 12 }} />
                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: 'none' }} axisLine={{ stroke: 'none' }} />
                                 <Radar name="Coverage" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
-                                <Tooltip contentStyle={{ backgroundColor: '#1e1e1e', border: '1px solid #2d2d2d' }} />
-                                <Legend wrapperStyle={{ color: '#e5e7eb' }} />
+                                <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }} wrapperClassName="dark:[&>div]:!bg-gray-800 dark:[&>div]:!border-gray-700" />
+                                <Legend wrapperStyle={{ color: '#9ca3af' }} />
                             </RadarChart>
                         </ResponsiveContainer>
                     </div>

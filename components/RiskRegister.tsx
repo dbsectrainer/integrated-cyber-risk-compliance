@@ -67,10 +67,10 @@ const RiskRegister: React.FC = () => {
 
     return (
         <Card>
-            <h2 className="text-xl font-bold mb-4 text-white">Risk Register</h2>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Risk Register</h2>
             <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                    <thead className="border-b border-gray-600 text-sm text-gray-400">
+                    <thead className="border-b border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-400">
                         <tr>
                             {['id', 'title', 'asset', 'category', 'impact', 'likelihood', 'score', 'status'].map((key) => (
                                 <th key={key} className="py-3 px-4 cursor-pointer" onClick={() => requestSort(key as SortKey)}>
@@ -84,11 +84,11 @@ const RiskRegister: React.FC = () => {
                     </thead>
                     <tbody>
                         {sortedRisks.map((risk) => (
-                            <tr key={risk.id} className="border-b border-gray-700 hover:bg-gray-700/50">
-                                <td className="py-3 px-4 text-gray-400 font-mono text-xs">{risk.id}</td>
+                            <tr key={risk.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                <td className="py-3 px-4 text-gray-600 dark:text-gray-400 font-mono text-xs">{risk.id}</td>
                                 <td className="py-3 px-4 font-medium">{risk.title}</td>
-                                <td className="py-3 px-4 text-gray-300">{risk.asset}</td>
-                                <td className="py-3 px-4 text-gray-400">{risk.category}</td>
+                                <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{risk.asset}</td>
+                                <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{risk.category}</td>
                                 <td className={`py-3 px-4 font-medium ${getSeverityColor(risk.impact)}`}>{risk.impact}</td>
                                 <td className={`py-3 px-4 font-medium ${getSeverityColor(risk.likelihood)}`}>{risk.likelihood}</td>
                                 <td className="py-3 px-4">

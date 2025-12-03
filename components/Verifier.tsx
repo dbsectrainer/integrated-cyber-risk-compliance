@@ -136,7 +136,7 @@ export default function Verifier() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-gray-400">Running control verifications...</div>
+        <div className="text-gray-600 dark:text-gray-400">Running control verifications...</div>
       </div>
     );
   }
@@ -145,10 +145,10 @@ export default function Verifier() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           🔍 Control Verifier
         </h1>
-        <p className="text-gray-400">
+        <p className="text-gray-600 dark:text-gray-400">
           Automated verification of security controls across infrastructure, applications, and processes
         </p>
       </div>
@@ -158,8 +158,8 @@ export default function Verifier() {
         <Card>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm text-gray-400">Total Controls</div>
-              <div className="text-2xl font-bold text-white">{summary.total}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Total Controls</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{summary.total}</div>
             </div>
             <Shield className="h-8 w-8 text-blue-400" />
           </div>
@@ -168,7 +168,7 @@ export default function Verifier() {
         <Card>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm text-gray-400">Passed</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Passed</div>
               <div className="text-2xl font-bold text-green-400">{summary.passed}</div>
             </div>
             <CheckCircle className="h-8 w-8 text-green-400" />
@@ -178,7 +178,7 @@ export default function Verifier() {
         <Card>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm text-gray-400">Failed</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Failed</div>
               <div className="text-2xl font-bold text-red-400">{summary.failed}</div>
             </div>
             <XCircle className="h-8 w-8 text-red-400" />
@@ -188,8 +188,8 @@ export default function Verifier() {
         <Card>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm text-gray-400">Compliance</div>
-              <div className="text-2xl font-bold text-white">{summary.compliancePercentage}%</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Compliance</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{summary.compliancePercentage}%</div>
             </div>
             <AlertTriangle
               className={`h-8 w-8 ${
@@ -207,8 +207,8 @@ export default function Verifier() {
       {/* Control Status Table */}
       <Card>
         <div className="mb-4">
-          <h2 className="text-xl font-semibold text-white mb-1">Control Status</h2>
-          <p className="text-sm text-gray-400">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Control Status</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Real-time verification results with framework mappings
           </p>
         </div>
@@ -216,22 +216,22 @@ export default function Verifier() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-700">
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Status</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Control</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Severity</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">SOC2</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">HIPAA</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">ISO 27001</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Findings</th>
-                <th className="text-left py-3 px-4 text-gray-400 font-medium">Actions</th>
+              <tr className="border-b border-gray-200 dark:border-gray-700">
+                <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Status</th>
+                <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Control</th>
+                <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Severity</th>
+                <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">SOC2</th>
+                <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">HIPAA</th>
+                <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">ISO 27001</th>
+                <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Findings</th>
+                <th className="text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {controlStatuses.map((control) => (
                 <tr
                   key={control.control_id}
-                  className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
+                  className="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                 >
                   <td className="py-3 px-4">
                     {control.status === 'PASS' ? (
@@ -241,8 +241,8 @@ export default function Verifier() {
                     )}
                   </td>
                   <td className="py-3 px-4">
-                    <div className="text-white font-medium">{control.control_id}</div>
-                    <div className="text-sm text-gray-400">{control.control_name}</div>
+                    <div className="text-gray-900 dark:text-white font-medium">{control.control_id}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{control.control_name}</div>
                   </td>
                   <td className="py-3 px-4">
                     <span
@@ -326,12 +326,12 @@ export default function Verifier() {
         <Card>
           <div className="mb-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-white">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 {selectedControlData.control_name}
               </h2>
               <button
                 onClick={() => setSelectedControl(null)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               >
                 ✕
               </button>
@@ -339,15 +339,15 @@ export default function Verifier() {
           </div>
 
           {/* Summary */}
-          <div className="mb-6 p-4 bg-gray-800 rounded-lg">
-            <h3 className="text-lg font-semibold text-white mb-3">Summary</h3>
+          <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Summary</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {Object.entries(selectedControlData.summary).map(([key, value]) => (
                 <div key={key}>
-                  <div className="text-xs text-gray-400 capitalize">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 capitalize">
                     {key.replace(/_/g, ' ')}
                   </div>
-                  <div className="text-lg font-semibold text-white">
+                  <div className="text-lg font-semibold text-gray-900 dark:text-white">
                     {typeof value === 'number' && key.includes('percentage')
                       ? `${value}%`
                       : value}
@@ -360,7 +360,7 @@ export default function Verifier() {
           {/* Findings */}
           {selectedControlData.findings.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-white mb-3">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                 Findings ({selectedControlData.findings.length})
               </h3>
               <div className="space-y-3">
@@ -372,14 +372,14 @@ export default function Verifier() {
                     <div className="flex items-start gap-3">
                       <XCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
                       <div className="flex-1">
-                        <div className="font-medium text-white mb-1">
+                        <div className="font-medium text-gray-900 dark:text-white mb-1">
                           {finding.resource_address ||
                             finding.resource_name ||
                             finding.file ||
                             'Finding'}
                         </div>
-                        <div className="text-sm text-gray-300 mb-2">{finding.issue}</div>
-                        <div className="text-xs text-gray-400 mb-2">
+                        <div className="text-sm text-gray-700 dark:text-gray-300 mb-2">{finding.issue}</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                           <span className="font-semibold">Type:</span>{' '}
                           {finding.resource_type || finding.type || 'N/A'}
                         </div>
@@ -397,11 +397,11 @@ export default function Verifier() {
 
           {/* Remediation Steps */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-3">Remediation Steps</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Remediation Steps</h3>
             <div className="bg-blue-900/20 border border-blue-900/50 rounded-lg p-4">
               <ol className="list-decimal list-inside space-y-2">
                 {selectedControlData.remediation.map((step, idx) => (
-                  <li key={idx} className="text-gray-300">
+                  <li key={idx} className="text-gray-700 dark:text-gray-300">
                     {step}
                   </li>
                 ))}
@@ -413,28 +413,28 @@ export default function Verifier() {
 
       {/* Framework Coverage */}
       <Card>
-        <h2 className="text-xl font-semibold text-white mb-4">Framework Coverage</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Framework Coverage</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-4 bg-blue-900/20 rounded-lg">
             <div className="text-lg font-semibold text-blue-400 mb-2">SOC2</div>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {controlStatuses.filter((c) => c.frameworks.soc2.length > 0).length}
             </div>
-            <div className="text-sm text-gray-400">Controls Mapped</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Controls Mapped</div>
           </div>
           <div className="p-4 bg-purple-900/20 rounded-lg">
             <div className="text-lg font-semibold text-purple-400 mb-2">HIPAA</div>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {controlStatuses.filter((c) => c.frameworks.hipaa.length > 0).length}
             </div>
-            <div className="text-sm text-gray-400">Controls Mapped</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Controls Mapped</div>
           </div>
           <div className="p-4 bg-green-900/20 rounded-lg">
             <div className="text-lg font-semibold text-green-400 mb-2">ISO 27001</div>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {controlStatuses.filter((c) => c.frameworks.iso27001.length > 0).length}
             </div>
-            <div className="text-sm text-gray-400">Controls Mapped</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Controls Mapped</div>
           </div>
         </div>
       </Card>
