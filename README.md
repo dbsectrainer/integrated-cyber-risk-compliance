@@ -53,6 +53,30 @@ The prototype is organized into six distinct views, each addressing a key delive
     *   An interactive, in-app slide deck designed for executive briefings.
     *   Clearly communicates the problem, the ICRAF solution, key benefits, and projected ROI.
 
+## 3a. CMMC 2.0 Compliance Tracking (NEW)
+
+For **DoD contractors**, this dashboard now includes **CMMC 2.0** (Cybersecurity Maturity Model Certification) readiness assessment:
+
+*   **📋 CMMC 2.0 Dashboard:**
+    *   Full mapping of **17 CMMC domains** with **110 practices**
+    *   Tracks implementation status across three levels (Foundational, Advanced, Expert)
+    *   Coverage includes AC, AU, CM, IA, IR, MA, MP, PE, PL, PS, RA, SA, SC, SI, SR
+    *   Aligns with **NIST 800-171 Moderate baseline** (Level 2 equivalent)
+
+*   **🔗 NIST Framework Cross-Reference:**
+    *   Maps CMMC practices to NIST 800-53 control families
+    *   Integrated with existing Control Verifier for CMMC evidence collection
+    *   Supports automated compliance scanning for AC, SC, SI families
+
+*   **📊 CMMC Readiness Scoring:**
+    *   Real-time assessment of maturity level (L1, L2, L3)
+    *   Practice-by-practice tracking with remediation status
+    *   Executive-ready CMMC certification roadmap
+
+**Resources:**
+- 📄 [**CMMC-MAPPING.md**](CMMC-MAPPING.md) — Full domain/practice listing + NIST alignment
+- 🏛️ [**../cloud-security-best-practices/fedramp-30-days/**](../cloud-security-best-practices/fedramp-30-days/) — 30-day implementation roadmap
+
 ## 4. Tech Stack
 
 This project is built with modern, efficient, and scalable frontend technologies.
