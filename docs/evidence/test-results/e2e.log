@@ -1,0 +1,18 @@
+PASS  Dashboard renders
+PASS  Dashboard shows 4 KPI cards + 5 incidents
+PASS  Radar chart rendered
+PASS  Tailwind styles bundled (sidebar has bg)
+PASS  Verifier lists 3 controls
+PASS  Failing scenario: 3 failed — Failed=3
+PASS  CTRL-003 details show all 5 secret findings
+PASS  Secrets are masked in UI
+PASS  Passing scenario: 3 passed / 100% compliance
+PASS  Governance renders RACI table
+PASS  Risk register default sort: highest score first
+PASS  Clicking Score reverses to ascending
+PASS  Project Plan renders
+PASS  Executive deck next-slide changes slide — The Problem: Siloed Security & Compliance -> The Solution: Integrated Automation Framework (ICRAF)
+PASS  Dark mode toggles html.dark
+PASS  Mobile: no page-level horizontal overflow
+PASS  No console errors (excluding Google Fonts)
+PASS  No failed network requests (excluding Google Fonts)

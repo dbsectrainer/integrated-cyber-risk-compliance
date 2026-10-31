@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
 
 # Build outputs
 dist/
@@ -41,3 +40,6 @@ coverage/
 .cache/
 .temp/
 .tmp/
+
+# Keep verification evidence logs
+!docs/evidence/**/*.log

@@ -1,0 +1,18 @@
+
+> icraf:-integrated-cyber-risk-&-compliance-dashboard@0.0.0 build
+> vite build
+
+vite v6.4.5 building for production...
+transforming...
+✓ 2285 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.73 kB │ gzip:   0.42 kB
+dist/assets/index-DDpew0po.css   20.26 kB │ gzip:   4.19 kB
+dist/assets/index-K4f_jjGi.js   657.32 kB │ gzip: 193.80 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.34s

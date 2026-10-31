@@ -1,0 +1,13 @@
+
+> icraf:-integrated-cyber-risk-&-compliance-dashboard@0.0.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /home/user/integrated-cyber-risk-compliance
+
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  21:15:25
+   Duration  403ms (transform 74%, import 11%, tests 10%, worker 5%)
+

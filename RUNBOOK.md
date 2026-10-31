@@ -81,7 +81,7 @@ cd integrated-cyber-risk-compliance
 npm install
 
 # Start development server
-npm start
+npm run dev
 ```
 
 The application will be available at `http://localhost:3000`.
@@ -234,7 +234,7 @@ terraform plan -out=tfplan
 terraform show -json tfplan > plan.json
 
 # Run verification (in app)
-# Upload plan.json to samples/terraform/custom/
+# NOTE: the UI has no upload feature yet; to try your own file, replace the matching sample under samples/terraform/failing/ (and rebuild)
 ```
 
 #### 2. Kubernetes Manifests
@@ -244,7 +244,7 @@ terraform show -json tfplan > plan.json
 kubectl get deployments -A -o yaml > deployments.yaml
 
 # Run verification (in app)
-# Upload deployments.yaml to samples/kubernetes/custom/
+# NOTE: the UI has no upload feature yet; to try your own file, replace the matching sample under samples/kubernetes/failing/ (and rebuild)
 ```
 
 #### 3. CI/CD Logs
@@ -258,7 +258,7 @@ curl -u user:token https://jenkins.company.com/job/build/lastBuild/consoleText >
 gitlab-ci-log download --job-id 12345 > build.log
 
 # Run verification (in app)
-# Upload build.log to samples/ci-logs/custom/
+# NOTE: the UI has no upload feature yet; to try your own file, replace the matching sample under samples/ci-logs/failing/ (and rebuild)
 ```
 
 ### Automated Verification
@@ -588,22 +588,13 @@ security-scan:
 
 ## Troubleshooting
 
-### Issue: Verifier not loading samples
+### Issue: Verifier shows errors or no controls
 
-**Symptom**: "Failed to load sample file" error
+**Symptom**: A red "Verification error" banner, or an empty control table
 
-**Cause**: Sample files not in public directory
+**Cause**: Samples are imported at build time via Vite `?raw` imports (`components/Verifier.tsx`). A missing/renamed file under `samples/` breaks the build; malformed sample content shows the error banner (details in the browser console).
 
-**Fix**:
-```bash
-# Ensure samples are accessible
-cp -r samples/ public/samples/
-
-# Or update vite.config.ts
-export default defineConfig({
-  publicDir: 'samples',
-})
-```
+**Fix**: Restore the files listed in `components/Verifier.tsx`, then run `npm run check`. No `public/` copy is needed.
 
 ---
 

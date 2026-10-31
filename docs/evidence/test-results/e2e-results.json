@@ -1,0 +1,97 @@
+{
+  "base": "http://localhost:4173",
+  "results": [
+    {
+      "name": "Dashboard renders",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Dashboard shows 4 KPI cards + 5 incidents",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Radar chart rendered",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Tailwind styles bundled (sidebar has bg)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Verifier lists 3 controls",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Failing scenario: 3 failed",
+      "ok": true,
+      "detail": "Failed=3"
+    },
+    {
+      "name": "CTRL-003 details show all 5 secret findings",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Secrets are masked in UI",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Passing scenario: 3 passed / 100% compliance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Governance renders RACI table",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Risk register default sort: highest score first",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Clicking Score reverses to ascending",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Project Plan renders",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Executive deck next-slide changes slide",
+      "ok": true,
+      "detail": "The Problem: Siloed Security & Compliance -> The Solution: Integrated Automation Framework (ICRAF)"
+    },
+    {
+      "name": "Dark mode toggles html.dark",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Mobile: no page-level horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "No console errors (excluding Google Fonts)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "No failed network requests (excluding Google Fonts)",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "consoleErrors": [],
+  "failedRequests": []
+}
