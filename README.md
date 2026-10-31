@@ -10,7 +10,7 @@
 
 1. Browser-based, no-backend compliance dashboard built with React 19 and TypeScript, running entirely client-side via Vite.
 2. Provides a unified security posture view combining KPI telemetry, NIST CSF radar coverage, incident tracking, and an interactive risk register in a single pane of glass.
-3. Documents the CMMC 2.0 / NIST 800-171 control mapping (110 Level 2 practices) in `CMMC-MAPPING.md`. **An interactive CMMC tracker view is not yet implemented** (see Known Limitations and `ROADMAP.md`).
+3. Includes an interactive CMMC 2.0 Tracker: all 14 domains and 110 Level 2 practices (NIST SP 800-171 Rev. 2), the 17 Level 1 practices flagged, filters, per-practice self-reported status stored in the browser, and readiness scores by level and domain.
 4. Includes an automated Control Verifier that parses Terraform plan JSON, Kubernetes manifests, and CI/CD log files to produce pass/fail compliance evidence mapped to SOC2, HIPAA, and ISO 27001.
 5. Features a Governance Blueprint illustrating the SIEM-to-ITSM-to-GRC automated data flow with NIST CSF-to-ITIL mappings and a full RACI matrix.
 6. Ships with sample passing and failing fixture files, OPA/Kyverno/detect-secrets policy files, and a complete operational runbook to support auditor review and evidence collection.
@@ -76,9 +76,17 @@ The Control Verifier transforms ICRAF from a visualization tool into a verifiabl
 
 Each control produces resource-level findings, severity ratings, and step-by-step remediation guidance. Passing and failing sample fixture files are included under `samples/` for auditor review.
 
-### CMMC 2.0 Mapping (documentation only)
+### CMMC 2.0 Tracker
 
-`CMMC-MAPPING.md` maps CMMC 2.0 domains and practices to NIST 800-171 / 800-53. It is a reference document; **there is no CMMC screen in the UI today**, and the Control Verifier covers only the three controls above. Note that the official CMMC 2.0 Level 2 model has 14 domains and 110 practices; the "17 domains" wording in `CMMC-MAPPING.md` has not been reconciled with the official model and should be reviewed before being used for assessment.
+The CMMC Tracker (`components/CmmcTracker.tsx`, data in `data/cmmcPractices.ts`, reference in `CMMC-MAPPING.md`) covers the CMMC 2.0 model:
+
+- 14 domains (AC, AT, AU, CM, IA, IR, MA, MP, PS, PE, RA, CA, SC, SI) and 110 Level 2 practices from NIST SP 800-171 Rev. 2; 17 of them are the Level 1 practices
+- Search and filter by domain, level, and status
+- Self-reported status per practice (Not assessed, Not implemented, Partial, Implemented, Not applicable), persisted in the browser's `localStorage` only
+- Readiness score for Level 1 and Level 2 (implemented / in-scope practices; "partial" counts as not yet implemented; N/A is excluded), plus per-domain progress bars
+- Three practices link to Control Verifier controls as *supporting* evidence (SC.L2-3.13.16, CM.L2-3.4.8, IA.L2-3.5.10)
+
+Statuses are planning aids, not assessment results. Level 3 (NIST SP 800-172) is out of scope. Requirement text is condensed; confirm against NIST and the DoD CMMC Assessment Guides before relying on it.
 
 ### Interactive Risk Register and Governance Blueprint
 
@@ -88,7 +96,7 @@ The Governance Blueprint illustrates the automated data flow from SIEM (Splunk) 
 
 ### Security and Compliance
 
-- CMMC 2.0 / NIST 800-171 control mapping (reference document only)
+- CMMC 2.0 Level 1 and Level 2 (14 domains, 110 practices; NIST SP 800-171 Rev. 2)
 - NIST SP 800-171 Rev 3 (Moderate baseline, Level 2 alignment)
 - NIST Cybersecurity Framework (CSF) — Identify, Protect, Detect, Respond, Recover
 - SOC2 Type II — CC6.1, CC6.7, CC8.1 automated evidence
@@ -118,7 +126,7 @@ npm install
 # Start the development server (runs on http://localhost:3000)
 npm run dev
 
-# Typecheck, unit tests, production build
+# Lint, typecheck, unit tests, production build
 npm run check
 ```
 
@@ -143,11 +151,11 @@ The output in `dist/` is a static bundle that can be served from any static host
 **Frontend prototype complete — compliance evidence infrastructure in place**
 
 - React 19 + TypeScript 5.8 + Vite 6 build pipeline with no compilation errors
-- Six interactive views: Dashboard, Control Verifier, Governance Blueprint, Risk Register, Project Plan, Executive Deck
+- Seven interactive views: Dashboard, Control Verifier, CMMC Tracker, Governance Blueprint, Risk Register, Project Plan, Executive Deck
 - Automated control verification logic implemented in `verifiers/` with real Terraform, Kubernetes, and CI log parsers
 - Passing and failing sample fixture files present in `samples/` for all three controls
 - OPA, Kyverno, and detect-secrets policy files present in `policies/`
-- CMMC 2.0 domain/practice mapping documented in `CMMC-MAPPING.md` (reference only, no UI)
+- CMMC 2.0 domain/practice data (`data/cmmcPractices.ts`) and reference tables in `CMMC-MAPPING.md`
 - Operational runbook present at `RUNBOOK.md`
 - MIT license included
 - No backend dependency — runs entirely client-side
@@ -155,11 +163,12 @@ The output in `dist/` is a static bundle that can be served from any static host
 ### Verification
 
 ```bash
-npm install
-npm run check        # typecheck + unit tests + production build
-npm run preview -- --port 4173 &   # serve the production build
-node scripts/e2e.mjs               # Playwright e2e + screenshots (needs Playwright/Chromium)
+npm ci
+npm run check        # lint + typecheck + unit tests + production build
+npm run test:e2e     # build, serve with `vite preview`, run Playwright e2e + axe accessibility audit
 ```
+
+`npm run test:e2e` needs Playwright's Chromium (`npx playwright install chromium` if it is not already installed). Set `BROWSER=firefox` or `BROWSER=webkit` (after installing them) and `SHOTS=0` to run the same checks in another engine without overwriting the evidence files.
 
 Latest verified results, logs, and screenshots are in [`docs/evidence/verification-report.md`](docs/evidence/verification-report.md).
 
@@ -168,19 +177,23 @@ Latest verified results, logs, and screenshots are in [`docs/evidence/verificati
 | View | Screenshot |
 | --- | --- |
 | Dashboard (desktop) | ![Dashboard](docs/evidence/screenshots/dashboard-desktop.png) |
-| Control Verifier — failing samples, CTRL-003 details | ![Verifier failing](docs/evidence/screenshots/verifier-failing-details.png) |
-| Control Verifier — passing samples | ![Verifier passing](docs/evidence/screenshots/verifier-passing.png) |
+| CMMC Tracker | ![CMMC tracker](docs/evidence/screenshots/cmmc-tracker.png) |
+| Control Verifier, failing samples, CTRL-003 details | ![Verifier failing](docs/evidence/screenshots/verifier-failing-details.png) |
+| Control Verifier, passing samples | ![Verifier passing](docs/evidence/screenshots/verifier-passing.png) |
+| Control Verifier, uploaded custom CI log | ![Verifier upload](docs/evidence/screenshots/verifier-upload-custom-log.png) |
+| Governance (RACI) | ![Governance](docs/evidence/screenshots/governance-desktop.png) |
 | Risk Register (sorted) | ![Risk register](docs/evidence/screenshots/risk-register-sorted.png) |
 | Dashboard (mobile 390px) | ![Mobile](docs/evidence/screenshots/dashboard-mobile.png) |
+| CMMC Tracker (dark) | ![CMMC dark](docs/evidence/screenshots/cmmc-tracker-dark.png) |
 
 ### Known Limitations
 
-- No CMMC tracker UI (mapping is documentation only).
-- All dashboard data (KPIs, incidents, risks, project plan) is static mock data; no SIEM/ITSM/GRC integration exists.
-- The Control Verifier runs against the bundled sample files only; there is no file-upload UI. Kubernetes parsing is regex-based (not a full YAML parser).
-- No ESLint configuration; `npm run typecheck` is the static check.
-- Inter font is loaded from Google Fonts; offline it falls back to the system sans-serif.
-- Main JS bundle is ~657 kB (no code splitting).
+- All dashboard data (KPIs, incidents, risks, RACI, project plan) is static sample data, clearly labelled "sample data" in the UI. There is no SIEM/ITSM/GRC integration, backend, or authentication; those are roadmap items (`ROADMAP.md`) that need external systems.
+- The Control Verifier analyses either the bundled samples or files you choose in the browser (processed locally, 2 MB max). Only three controls are implemented, and only the checks described in `verifiers/` (e.g. the Kubernetes check is limited to image digest, tag, registry, and signature-annotation rules).
+- CMMC Tracker statuses are self-reported and stored in `localStorage` (per browser, not shared or exported). CMMC requirement text is condensed; Level 3 is not covered.
+- Verified in Chromium only. Firefox and WebKit could not be installed in the audit environment (the Playwright download host was blocked); the e2e script supports them via `BROWSER=`.
+- Accessibility was audited with axe-core (WCAG 2.0/2.1 A/AA + best-practice rules) on all views in light and dark mode; automated rules do not replace a manual screen-reader review.
+- Inter is loaded from Google Fonts; offline it falls back to the system sans-serif.
 
 ---
 
@@ -192,6 +205,7 @@ integrated-cyber-risk-compliance/
 │   ├── shared/
 │   │   ├── Card.tsx              # Reusable card wrapper
 │   │   └── KpiCard.tsx           # KPI metric display card
+│   ├── CmmcTracker.tsx           # CMMC 2.0 tracker view
 │   ├── Dashboard.tsx             # Unified dashboard view
 │   ├── Governance.tsx            # Governance blueprint view
 │   ├── Presentation.tsx          # Executive slide deck view
@@ -202,6 +216,8 @@ integrated-cyber-risk-compliance/
 ├── contexts/
 │   └── ThemeContext.tsx          # Theme context provider
 ├── data/
+│   ├── cmmcPractices.ts          # CMMC 2.0: 14 domains, 110 practices
+│   ├── cmmcScore.ts              # Readiness scoring
 │   ├── controlMap.ts             # Control-to-framework mappings
 │   └── mockData.ts               # Mock data for all views
 ├── verifiers/
@@ -222,10 +238,11 @@ integrated-cyber-risk-compliance/
 │   ├── ci-cd/secrets-detection.yaml
 │   ├── kubernetes/image-signature-verification.yaml
 │   └── terraform/encryption-at-rest.rego
-├── tests/                        # Vitest unit tests for the verifiers
-├── scripts/e2e.mjs               # Playwright e2e + screenshot capture
+├── tests/                        # Vitest unit tests (verifiers, CMMC data/scoring, sample-data integrity)
+├── scripts/e2e.mjs               # Playwright e2e + axe accessibility audit + screenshots
 ├── docs/evidence/                # Verification report, logs, screenshots
 ├── tailwind.config.js            # Tailwind (bundled, no CDN)
+├── eslint.config.js              # ESLint flat config
 ├── App.tsx                       # Main application router
 ├── constants.ts                  # Navigation items and constants
 ├── index.html                    # HTML entry point

@@ -5,6 +5,7 @@ export enum View {
   ProjectPlan = 'PROJECT_PLAN',
   Presentation = 'PRESENTATION',
   Verifier = 'VERIFIER',
+  Cmmc = 'CMMC',
 }
 
 export interface Kpi {

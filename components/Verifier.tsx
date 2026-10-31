@@ -1,12 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Shield, CheckCircle, XCircle, AlertTriangle, FileText, Terminal, Code } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Shield, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import Card from './shared/Card';
-import { CONTROL_MAP, getControlSummary, getFrameworkCoverage } from '../data/controlMap';
+import { CONTROL_MAP } from '../data/controlMap';
 
 // Import verifiers
 import { verifyTerraformPlan } from '../verifiers/terraformVerifier';
 import { verifyKubernetesManifests } from '../verifiers/kubernetesVerifier';
 import { verifyCILogs } from '../verifiers/ciLogsVerifier';
+
+/** Superset of the finding shapes produced by the three verifiers (all fields optional). */
+interface UiFinding {
+  resource_address?: string;
+  resource_name?: string;
+  file?: string;
+  resource_type?: string;
+  type?: string;
+  issue?: string;
+  remediation?: string;
+}
 
 interface ControlStatus {
   control_id: string;
@@ -18,8 +29,8 @@ interface ControlStatus {
     hipaa: string[];
     iso27001: string[];
   };
-  findings: any[];
-  summary: any;
+  findings: UiFinding[];
+  summary: Record<string, string | number>;
   remediation: string[];
 }
 
@@ -45,56 +56,87 @@ const frameworksFor = (index: number) => ({
   iso27001: CONTROL_MAP[index].frameworks.iso27001.map((f) => f.id),
 });
 
+type SampleKey = 'tf' | 'k8s' | 'ci';
+type CustomInputs = Partial<Record<SampleKey, { name: string; content: string }>>;
+
+const UPLOADS: { key: SampleKey; label: string; accept: string }[] = [
+  { key: 'tf', label: 'Terraform plan (JSON)', accept: '.json,application/json' },
+  { key: 'k8s', label: 'Kubernetes manifests (YAML)', accept: '.yaml,.yml' },
+  { key: 'ci', label: 'CI/CD log (text)', accept: '.log,.txt,text/plain' },
+];
+const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
+
+
+function computeControls(which: Scenario, overrides: CustomInputs): { results: ControlStatus[]; errors: string[] } {
+  const samples = {
+    tf: overrides.tf?.content ?? SAMPLES[which].tf,
+    k8s: overrides.k8s?.content ?? SAMPLES[which].k8s,
+    ci: overrides.ci?.content ?? SAMPLES[which].ci,
+  };
+  const results: ControlStatus[] = [];
+  const errors: string[] = [];
+
+  const run = (
+    id: string,
+    name: string,
+    index: number,
+    fn: () => {
+      status: 'PASS' | 'FAIL';
+      severity: string;
+      findings: UiFinding[];
+      summary: Record<string, string | number>;
+      remediation: string[];
+    }
+  ) => {
+    try {
+      const r = fn();
+      results.push({
+        control_id: id,
+        control_name: name,
+        status: r.status,
+        severity: r.severity,
+        frameworks: frameworksFor(index),
+        findings: r.findings,
+        summary: r.summary,
+        remediation: r.remediation,
+      });
+    } catch (error) {
+      console.error(`${id} verification error:`, error);
+      errors.push(`${id} ${name}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+
+  run('CTRL-001', 'Encryption at Rest for Storage Resources', 0, () => verifyTerraformPlan(samples.tf));
+  run('CTRL-002', 'Container Image Signature Verification', 1, () => verifyKubernetesManifests(samples.k8s));
+  run('CTRL-003', 'Secrets Detection in Source Code', 2, () => verifyCILogs(samples.ci));
+  return { results, errors };
+}
+
 export default function Verifier() {
-  const [controlStatuses, setControlStatuses] = useState<ControlStatus[]>([]);
   const [selectedControl, setSelectedControl] = useState<string | null>(null);
   const [scenario, setScenario] = useState<Scenario>('failing');
-  const [errors, setErrors] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [custom, setCustom] = useState<CustomInputs>({});
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const { results: controlStatuses, errors } = useMemo(() => computeControls(scenario, custom), [scenario, custom]);
 
-  useEffect(() => {
-    runVerifications(scenario);
-  }, [scenario]);
-
-  const runVerifications = (which: Scenario) => {
-    setLoading(true);
-    const samples = SAMPLES[which];
-    const results: ControlStatus[] = [];
-    const errs: string[] = [];
-
-    const run = (
-      id: string,
-      name: string,
-      index: number,
-      fn: () => { status: 'PASS' | 'FAIL'; severity: string; findings: any[]; summary: any; remediation: string[] }
-    ) => {
-      try {
-        const r = fn();
-        results.push({
-          control_id: id,
-          control_name: name,
-          status: r.status,
-          severity: r.severity,
-          frameworks: frameworksFor(index),
-          findings: r.findings,
-          summary: r.summary,
-          remediation: r.remediation,
-        });
-      } catch (error) {
-        console.error(`${id} verification error:`, error);
-        errs.push(`${id} ${name}: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    };
-
-    run('CTRL-001', 'Encryption at Rest for Storage Resources', 0, () => verifyTerraformPlan(samples.tf));
-    run('CTRL-002', 'Container Image Signature Verification', 1, () => verifyKubernetesManifests(samples.k8s));
-    run('CTRL-003', 'Secrets Detection in Source Code', 2, () => verifyCILogs(samples.ci));
-
-    setControlStatuses(results);
-    setErrors(errs);
-    setSelectedControl(null);
-    setLoading(false);
+  const handleUpload = async (key: SampleKey, file: File | undefined) => {
+    if (!file) return;
+    setUploadError(null);
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setUploadError(`${file.name} is larger than ${MAX_UPLOAD_BYTES / 1024 / 1024} MB.`);
+      return;
+    }
+    // Files are read locally in the browser; nothing is uploaded to a server.
+    const content = await file.text();
+    setCustom((c) => ({ ...c, [key]: { name: file.name, content } }));
   };
+
+  const clearUpload = (key: SampleKey) =>
+    setCustom((c) => {
+      const next = { ...c };
+      delete next[key];
+      return next;
+    });
 
   const getSummary = () => {
     const total = controlStatuses.length;
@@ -107,14 +149,6 @@ export default function Verifier() {
 
   const summary = getSummary();
   const selectedControlData = controlStatuses.find((c) => c.control_id === selectedControl);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-gray-600 dark:text-gray-400">Running control verifications...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -130,7 +164,10 @@ export default function Verifier() {
           {(['failing', 'passing'] as Scenario[]).map((s) => (
             <button
               key={s}
-              onClick={() => setScenario(s)}
+              onClick={() => {
+                setScenario(s);
+                setSelectedControl(null);
+              }}
               aria-pressed={scenario === s}
               className={`px-4 py-2 text-sm font-medium ${
                 scenario === s
@@ -144,8 +181,43 @@ export default function Verifier() {
         </div>
       </div>
 
+      <Card>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Verify your own artifacts</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Choose a file to replace the bundled sample for a control. Files are processed locally in your browser and are never uploaded. Max 2 MB each.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {UPLOADS.map((u) => (
+            <div key={u.key} className="text-sm text-gray-700 dark:text-gray-300">
+              <label htmlFor={`upload-${u.key}`} className="block font-medium mb-1">{u.label}</label>
+              <input
+                id={`upload-${u.key}`}
+                type="file"
+                accept={u.accept}
+                onChange={(e) => {
+                  handleUpload(u.key, e.target.files?.[0]);
+                  e.target.value = '';
+                }}
+                className="block w-full text-xs"
+              />
+              {custom[u.key] ? (
+                <div className="mt-1 text-xs">
+                  Using <strong>{custom[u.key]!.name}</strong>{' '}
+                  <button onClick={() => clearUpload(u.key)} className="underline text-blue-700 dark:text-blue-400">
+                    Revert to sample
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">Using bundled {scenario} sample</div>
+              )}
+            </div>
+          ))}
+        </div>
+        {uploadError && <div role="alert" className="mt-3 text-sm text-red-700 dark:text-red-400">{uploadError}</div>}
+      </Card>
+
       {errors.length > 0 && (
-        <div role="alert" className="p-4 rounded-lg border border-red-500/50 bg-red-500/10 text-red-500">
+        <div role="alert" className="p-4 rounded-lg border border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400">
           {errors.map((e) => (
             <div key={e}>Verification error: {e}</div>
           ))}
@@ -308,7 +380,7 @@ export default function Verifier() {
                           selectedControl === control.control_id ? null : control.control_id
                         )
                       }
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 text-sm font-medium"
+                      className="text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
                     >
                       {selectedControl === control.control_id ? 'Hide' : 'Details'}
                     </button>

@@ -234,7 +234,7 @@ terraform plan -out=tfplan
 terraform show -json tfplan > plan.json
 
 # Run verification (in app)
-# NOTE: the UI has no upload feature yet; to try your own file, replace the matching sample under samples/terraform/failing/ (and rebuild)
+# In the app: Verifier → "Verify your own artifacts" → choose plan.json (processed locally in the browser)
 ```
 
 #### 2. Kubernetes Manifests
@@ -244,7 +244,7 @@ terraform show -json tfplan > plan.json
 kubectl get deployments -A -o yaml > deployments.yaml
 
 # Run verification (in app)
-# NOTE: the UI has no upload feature yet; to try your own file, replace the matching sample under samples/kubernetes/failing/ (and rebuild)
+# In the app: Verifier → "Verify your own artifacts" → choose deployments.yaml
 ```
 
 #### 3. CI/CD Logs
@@ -258,7 +258,7 @@ curl -u user:token https://jenkins.company.com/job/build/lastBuild/consoleText >
 gitlab-ci-log download --job-id 12345 > build.log
 
 # Run verification (in app)
-# NOTE: the UI has no upload feature yet; to try your own file, replace the matching sample under samples/ci-logs/failing/ (and rebuild)
+# In the app: Verifier → "Verify your own artifacts" → choose build.log
 ```
 
 ### Automated Verification

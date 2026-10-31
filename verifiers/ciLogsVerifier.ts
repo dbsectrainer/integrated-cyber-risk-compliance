@@ -41,7 +41,6 @@ export class CILogsVerifier {
    */
   public verifySecretsDetection(): SecretsVerificationResult {
     const findings: SecretFinding[] = [];
-    let filesScanned = 0;
     let buildStatus: 'SUCCESS' | 'FAILED' = 'SUCCESS';
 
     // Parse the log for secrets detection results
@@ -53,7 +52,7 @@ export class CILogsVerifier {
     }
 
     // Get files scanned count
-    filesScanned = this.getFilesScannedCount();
+    const filesScanned = this.getFilesScannedCount();
 
     const filesWithSecrets = new Set(findings.map((f) => f.file)).size;
 

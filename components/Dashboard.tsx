@@ -33,8 +33,8 @@ const Dashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2">
-                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Recent High-Severity Incidents</h2>
-                    <div className="overflow-x-auto">
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Recent Incidents</h2>
+                    <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Recent incidents table">
                         <table className="w-full text-left">
                             <thead className="border-b border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-400">
                                 <tr>
@@ -50,14 +50,14 @@ const Dashboard: React.FC = () => {
                                         <td className="py-3 px-4">
                                             <div className="flex items-center gap-2">
                                                 <SeverityIcon severity={incident.severity} />
-                                                <span className={`font-medium ${incident.severity === 'Critical' ? 'text-red-400' : 'text-yellow-400'}`}>{incident.severity}</span>
+                                                <span className={`font-medium ${incident.severity === 'Critical' ? 'text-red-700 dark:text-red-400' : 'text-yellow-800 dark:text-yellow-400'}`}>{incident.severity}</span>
                                             </div>
                                         </td>
                                         <td className="py-3 px-4">{incident.title}</td>
                                         <td className="py-3 px-4">
                                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                                incident.status === 'Open' ? 'bg-red-500/20 text-red-400' :
-                                                incident.status === 'In Progress' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'
+                                                incident.status === 'Open' ? 'bg-red-500/20 text-red-700 dark:text-red-400' :
+                                                incident.status === 'In Progress' ? 'bg-yellow-500/20 text-yellow-800 dark:text-yellow-400' : 'bg-green-500/20 text-green-800 dark:text-green-400'
                                             }`}>
                                                 {incident.status}
                                             </span>
