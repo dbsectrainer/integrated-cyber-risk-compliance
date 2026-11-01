@@ -1,12 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Shield, CheckCircle, XCircle, AlertTriangle, FileText, Terminal, Code } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Shield, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import Card from './shared/Card';
-import { CONTROL_MAP, getControlSummary, getFrameworkCoverage } from '../data/controlMap';
+import { CONTROL_MAP } from '../data/controlMap';
 
 // Import verifiers
 import { verifyTerraformPlan } from '../verifiers/terraformVerifier';
 import { verifyKubernetesManifests } from '../verifiers/kubernetesVerifier';
 import { verifyCILogs } from '../verifiers/ciLogsVerifier';
+
+/** Superset of the finding shapes produced by the three verifiers (all fields optional). */
+interface UiFinding {
+  resource_address?: string;
+  resource_name?: string;
+  file?: string;
+  resource_type?: string;
+  type?: string;
+  issue?: string;
+  remediation?: string;
+}
 
 interface ControlStatus {
   control_id: string;
@@ -18,108 +29,114 @@ interface ControlStatus {
     hipaa: string[];
     iso27001: string[];
   };
-  findings: any[];
-  summary: any;
+  findings: UiFinding[];
+  summary: Record<string, string | number>;
   remediation: string[];
 }
 
-export default function Verifier() {
-  const [controlStatuses, setControlStatuses] = useState<ControlStatus[]>([]);
-  const [selectedControl, setSelectedControl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+type Scenario = 'failing' | 'passing';
 
-  useEffect(() => {
-    runVerifications();
-  }, []);
+// Samples are bundled at build time (?raw) so they are available in both the
+// dev server and the production build (no runtime fetch of repo-root files).
+import tfFailing from '../samples/terraform/failing/unencrypted-storage.json?raw';
+import tfPassing from '../samples/terraform/passing/encrypted-s3.json?raw';
+import k8sFailing from '../samples/kubernetes/failing/unsigned-deployment.yaml?raw';
+import k8sPassing from '../samples/kubernetes/passing/signed-deployment.yaml?raw';
+import ciFailing from '../samples/ci-logs/failing/secrets-detected.log?raw';
+import ciPassing from '../samples/ci-logs/passing/clean-build.log?raw';
 
-  const runVerifications = async () => {
-    setLoading(true);
+const SAMPLES: Record<Scenario, { tf: string; k8s: string; ci: string }> = {
+  failing: { tf: tfFailing, k8s: k8sFailing, ci: ciFailing },
+  passing: { tf: tfPassing, k8s: k8sPassing, ci: ciPassing },
+};
 
-    const results: ControlStatus[] = [];
+const frameworksFor = (index: number) => ({
+  soc2: CONTROL_MAP[index].frameworks.soc2.map((f) => f.id),
+  hipaa: CONTROL_MAP[index].frameworks.hipaa.map((f) => f.id),
+  iso27001: CONTROL_MAP[index].frameworks.iso27001.map((f) => f.id),
+});
 
-    // 1. Verify Terraform - Encryption at Rest
-    try {
-      // Test with both passing and failing samples
-      const passingTfResponse = await fetch('/samples/terraform/passing/encrypted-s3.json');
-      const passingTfContent = await passingTfResponse.text();
+type SampleKey = 'tf' | 'k8s' | 'ci';
+type CustomInputs = Partial<Record<SampleKey, { name: string; content: string }>>;
 
-      const failingTfResponse = await fetch('/samples/terraform/failing/unencrypted-storage.json');
-      const failingTfContent = await failingTfResponse.text();
+const UPLOADS: { key: SampleKey; label: string; accept: string }[] = [
+  { key: 'tf', label: 'Terraform plan (JSON)', accept: '.json,application/json' },
+  { key: 'k8s', label: 'Kubernetes manifests (YAML)', accept: '.yaml,.yml' },
+  { key: 'ci', label: 'CI/CD log (text)', accept: '.log,.txt,text/plain' },
+];
+const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
 
-      // For demo, we'll use the failing case to show violations
-      const tfResult = verifyTerraformPlan(failingTfContent);
 
-      results.push({
-        control_id: 'CTRL-001',
-        control_name: 'Encryption at Rest for Storage Resources',
-        status: tfResult.status,
-        severity: tfResult.severity,
-        frameworks: {
-          soc2: CONTROL_MAP[0].frameworks.soc2.map((f) => f.id),
-          hipaa: CONTROL_MAP[0].frameworks.hipaa.map((f) => f.id),
-          iso27001: CONTROL_MAP[0].frameworks.iso27001.map((f) => f.id),
-        },
-        findings: tfResult.findings,
-        summary: tfResult.summary,
-        remediation: tfResult.remediation,
-      });
-    } catch (error) {
-      console.error('Terraform verification error:', error);
-    }
-
-    // 2. Verify Kubernetes - Image Signature Verification
-    try {
-      const failingK8sResponse = await fetch('/samples/kubernetes/failing/unsigned-deployment.yaml');
-      const failingK8sContent = await failingK8sResponse.text();
-
-      const k8sResult = verifyKubernetesManifests(failingK8sContent);
-
-      results.push({
-        control_id: 'CTRL-002',
-        control_name: 'Container Image Signature Verification',
-        status: k8sResult.status,
-        severity: k8sResult.severity,
-        frameworks: {
-          soc2: CONTROL_MAP[1].frameworks.soc2.map((f) => f.id),
-          hipaa: CONTROL_MAP[1].frameworks.hipaa.map((f) => f.id),
-          iso27001: CONTROL_MAP[1].frameworks.iso27001.map((f) => f.id),
-        },
-        findings: k8sResult.findings,
-        summary: k8sResult.summary,
-        remediation: k8sResult.remediation,
-      });
-    } catch (error) {
-      console.error('Kubernetes verification error:', error);
-    }
-
-    // 3. Verify CI Logs - Secrets Detection
-    try {
-      const failingCIResponse = await fetch('/samples/ci-logs/failing/secrets-detected.log');
-      const failingCIContent = await failingCIResponse.text();
-
-      const ciResult = verifyCILogs(failingCIContent);
-
-      results.push({
-        control_id: 'CTRL-003',
-        control_name: 'Secrets Detection in Source Code',
-        status: ciResult.status,
-        severity: ciResult.severity,
-        frameworks: {
-          soc2: CONTROL_MAP[2].frameworks.soc2.map((f) => f.id),
-          hipaa: CONTROL_MAP[2].frameworks.hipaa.map((f) => f.id),
-          iso27001: CONTROL_MAP[2].frameworks.iso27001.map((f) => f.id),
-        },
-        findings: ciResult.findings,
-        summary: ciResult.summary,
-        remediation: ciResult.remediation,
-      });
-    } catch (error) {
-      console.error('CI logs verification error:', error);
-    }
-
-    setControlStatuses(results);
-    setLoading(false);
+function computeControls(which: Scenario, overrides: CustomInputs): { results: ControlStatus[]; errors: string[] } {
+  const samples = {
+    tf: overrides.tf?.content ?? SAMPLES[which].tf,
+    k8s: overrides.k8s?.content ?? SAMPLES[which].k8s,
+    ci: overrides.ci?.content ?? SAMPLES[which].ci,
   };
+  const results: ControlStatus[] = [];
+  const errors: string[] = [];
+
+  const run = (
+    id: string,
+    name: string,
+    index: number,
+    fn: () => {
+      status: 'PASS' | 'FAIL';
+      severity: string;
+      findings: UiFinding[];
+      summary: Record<string, string | number>;
+      remediation: string[];
+    }
+  ) => {
+    try {
+      const r = fn();
+      results.push({
+        control_id: id,
+        control_name: name,
+        status: r.status,
+        severity: r.severity,
+        frameworks: frameworksFor(index),
+        findings: r.findings,
+        summary: r.summary,
+        remediation: r.remediation,
+      });
+    } catch (error) {
+      console.error(`${id} verification error:`, error);
+      errors.push(`${id} ${name}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+
+  run('CTRL-001', 'Encryption at Rest for Storage Resources', 0, () => verifyTerraformPlan(samples.tf));
+  run('CTRL-002', 'Container Image Signature Verification', 1, () => verifyKubernetesManifests(samples.k8s));
+  run('CTRL-003', 'Secrets Detection in Source Code', 2, () => verifyCILogs(samples.ci));
+  return { results, errors };
+}
+
+export default function Verifier() {
+  const [selectedControl, setSelectedControl] = useState<string | null>(null);
+  const [scenario, setScenario] = useState<Scenario>('failing');
+  const [custom, setCustom] = useState<CustomInputs>({});
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const { results: controlStatuses, errors } = useMemo(() => computeControls(scenario, custom), [scenario, custom]);
+
+  const handleUpload = async (key: SampleKey, file: File | undefined) => {
+    if (!file) return;
+    setUploadError(null);
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setUploadError(`${file.name} is larger than ${MAX_UPLOAD_BYTES / 1024 / 1024} MB.`);
+      return;
+    }
+    // Files are read locally in the browser; nothing is uploaded to a server.
+    const content = await file.text();
+    setCustom((c) => ({ ...c, [key]: { name: file.name, content } }));
+  };
+
+  const clearUpload = (key: SampleKey) =>
+    setCustom((c) => {
+      const next = { ...c };
+      delete next[key];
+      return next;
+    });
 
   const getSummary = () => {
     const total = controlStatuses.length;
@@ -133,14 +150,6 @@ export default function Verifier() {
   const summary = getSummary();
   const selectedControlData = controlStatuses.find((c) => c.control_id === selectedControl);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-gray-600 dark:text-gray-400">Running control verifications...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -151,7 +160,69 @@ export default function Verifier() {
         <p className="text-gray-600 dark:text-gray-400">
           Automated verification of security controls across infrastructure, applications, and processes
         </p>
+        <div className="mt-4 inline-flex rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600" role="group" aria-label="Sample scenario">
+          {(['failing', 'passing'] as Scenario[]).map((s) => (
+            <button
+              key={s}
+              onClick={() => {
+                setScenario(s);
+                setSelectedControl(null);
+              }}
+              aria-pressed={scenario === s}
+              className={`px-4 py-2 text-sm font-medium ${
+                scenario === s
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              {s === 'failing' ? 'Failing samples' : 'Passing samples'}
+            </button>
+          ))}
+        </div>
       </div>
+
+      <Card>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Verify your own artifacts</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          Choose a file to replace the bundled sample for a control. Files are processed locally in your browser and are never uploaded. Max 2 MB each.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {UPLOADS.map((u) => (
+            <div key={u.key} className="text-sm text-gray-700 dark:text-gray-300">
+              <label htmlFor={`upload-${u.key}`} className="block font-medium mb-1">{u.label}</label>
+              <input
+                id={`upload-${u.key}`}
+                type="file"
+                accept={u.accept}
+                onChange={(e) => {
+                  handleUpload(u.key, e.target.files?.[0]);
+                  e.target.value = '';
+                }}
+                className="block w-full text-xs"
+              />
+              {custom[u.key] ? (
+                <div className="mt-1 text-xs">
+                  Using <strong>{custom[u.key]!.name}</strong>{' '}
+                  <button onClick={() => clearUpload(u.key)} className="underline text-blue-700 dark:text-blue-400">
+                    Revert to sample
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">Using bundled {scenario} sample</div>
+              )}
+            </div>
+          ))}
+        </div>
+        {uploadError && <div role="alert" className="mt-3 text-sm text-red-700 dark:text-red-400">{uploadError}</div>}
+      </Card>
+
+      {errors.length > 0 && (
+        <div role="alert" className="p-4 rounded-lg border border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400">
+          {errors.map((e) => (
+            <div key={e}>Verification error: {e}</div>
+          ))}
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -209,7 +280,7 @@ export default function Verifier() {
         <div className="mb-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Control Status</h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Real-time verification results with framework mappings
+            Verification results computed from the bundled sample artifacts, with framework mappings
           </p>
         </div>
 
@@ -248,10 +319,10 @@ export default function Verifier() {
                     <span
                       className={`px-2 py-1 rounded text-xs font-semibold ${
                         control.severity === 'CRITICAL'
-                          ? 'bg-red-900/50 text-red-400'
+                          ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
                           : control.severity === 'HIGH'
-                          ? 'bg-orange-900/50 text-orange-400'
-                          : 'bg-yellow-900/50 text-yellow-400'
+                          ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400'
+                          : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400'
                       }`}
                     >
                       {control.severity}
@@ -262,7 +333,7 @@ export default function Verifier() {
                       {control.frameworks.soc2.map((f) => (
                         <span
                           key={f}
-                          className="px-2 py-0.5 bg-blue-900/30 text-blue-400 rounded text-xs"
+                          className="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded text-xs"
                         >
                           {f}
                         </span>
@@ -274,7 +345,7 @@ export default function Verifier() {
                       {control.frameworks.hipaa.map((f) => (
                         <span
                           key={f}
-                          className="px-2 py-0.5 bg-purple-900/30 text-purple-400 rounded text-xs"
+                          className="px-2 py-0.5 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded text-xs"
                         >
                           {f}
                         </span>
@@ -286,7 +357,7 @@ export default function Verifier() {
                       {control.frameworks.iso27001.map((f) => (
                         <span
                           key={f}
-                          className="px-2 py-0.5 bg-green-900/30 text-green-400 rounded text-xs"
+                          className="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-xs"
                         >
                           {f}
                         </span>
@@ -309,7 +380,7 @@ export default function Verifier() {
                           selectedControl === control.control_id ? null : control.control_id
                         )
                       }
-                      className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                      className="text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
                     >
                       {selectedControl === control.control_id ? 'Hide' : 'Details'}
                     </button>
@@ -367,7 +438,7 @@ export default function Verifier() {
                 {selectedControlData.findings.map((finding, idx) => (
                   <div
                     key={idx}
-                    className="p-4 bg-red-900/20 border border-red-900/50 rounded-lg"
+                    className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-lg"
                   >
                     <div className="flex items-start gap-3">
                       <XCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
@@ -383,7 +454,7 @@ export default function Verifier() {
                           <span className="font-semibold">Type:</span>{' '}
                           {finding.resource_type || finding.type || 'N/A'}
                         </div>
-                        <div className="text-sm text-blue-300 bg-blue-900/20 p-2 rounded">
+                        <div className="text-sm text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
                           <span className="font-semibold">Remediation:</span>{' '}
                           {finding.remediation}
                         </div>
@@ -398,7 +469,7 @@ export default function Verifier() {
           {/* Remediation Steps */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Remediation Steps</h3>
-            <div className="bg-blue-900/20 border border-blue-900/50 rounded-lg p-4">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900/50 rounded-lg p-4">
               <ol className="list-decimal list-inside space-y-2">
                 {selectedControlData.remediation.map((step, idx) => (
                   <li key={idx} className="text-gray-700 dark:text-gray-300">
@@ -415,22 +486,22 @@ export default function Verifier() {
       <Card>
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Framework Coverage</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-4 bg-blue-900/20 rounded-lg">
-            <div className="text-lg font-semibold text-blue-400 mb-2">SOC2</div>
+          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div className="text-lg font-semibold text-blue-700 dark:text-blue-400 mb-2">SOC2</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {controlStatuses.filter((c) => c.frameworks.soc2.length > 0).length}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Controls Mapped</div>
           </div>
-          <div className="p-4 bg-purple-900/20 rounded-lg">
-            <div className="text-lg font-semibold text-purple-400 mb-2">HIPAA</div>
+          <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+            <div className="text-lg font-semibold text-purple-700 dark:text-purple-400 mb-2">HIPAA</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {controlStatuses.filter((c) => c.frameworks.hipaa.length > 0).length}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Controls Mapped</div>
           </div>
-          <div className="p-4 bg-green-900/20 rounded-lg">
-            <div className="text-lg font-semibold text-green-400 mb-2">ISO 27001</div>
+          <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <div className="text-lg font-semibold text-green-700 dark:text-green-400 mb-2">ISO 27001</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {controlStatuses.filter((c) => c.frameworks.iso27001.length > 0).length}
             </div>

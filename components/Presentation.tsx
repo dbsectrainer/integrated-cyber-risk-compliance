@@ -63,7 +63,7 @@ const Presentation: React.FC = () => {
     return (
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-6 sm:p-8 flex flex-col justify-between min-h-[60vh]">
             <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <Icon className="w-16 h-16 text-blue-500 mb-6"/>
+                <Icon className="w-16 h-16 text-blue-500 mb-6" aria-hidden="true" />
                 <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-900 dark:text-white">{slide.title}</h2>
                 <ul className="space-y-4 text-gray-700 dark:text-gray-300 max-w-2xl text-base sm:text-lg">
                     {slide.points.map((point, index) => (
@@ -86,13 +86,15 @@ const Presentation: React.FC = () => {
                         <button
                             key={index}
                             onClick={() => setCurrentSlide(index)}
-                            className={`w-3 h-3 rounded-full ${currentSlide === index ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'}`}
+                            aria-label={`Go to slide ${index + 1}`}
+                            aria-current={currentSlide === index ? 'step' : undefined}
+                            className={`w-3 h-3 rounded-full ${currentSlide === index ? 'bg-blue-600' : 'bg-gray-400 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'}`}
                         />
                     ))}
                 </div>
                 <button
                     onClick={nextSlide}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-md transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
                 >
                     Next <ArrowRight size={16} />
                 </button>

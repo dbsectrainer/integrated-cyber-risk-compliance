@@ -1,12 +1,5 @@
 import { Kpi, Incident, ComplianceStatus, Risk, RacI, ProjectTask } from '../types';
 
-export const kpiData: Kpi[] = [
-  { title: 'MTTD (Mean Time to Detect)', value: '45 mins', change: '-12%', changeType: 'decrease', description: 'vs. last 30 days' },
-  { title: 'MTTR (Mean Time to Respond)', value: '3.5 hours', change: '-8%', changeType: 'decrease', description: 'vs. last 30 days' },
-  { title: 'Control Coverage (NIST)', value: '92%', change: '+3%', changeType: 'increase', description: 'across all assets' },
-  { title: 'Open Critical Risks', value: '8', change: '+1', changeType: 'increase', description: 'in the last 7 days' },
-];
-
 export const incidentData: Incident[] = [
   { id: 'INC-001', title: 'Anomalous Login Activity from Foreign IP', severity: 'Critical', status: 'Open', source: 'SIEM', timestamp: '2024-07-30T10:00:00Z' },
   { id: 'INC-002', title: 'Potential Malware on HR Server', severity: 'High', status: 'In Progress', source: 'SIEM', timestamp: '2024-07-30T09:30:00Z' },
@@ -47,4 +40,17 @@ export const projectPlanData: ProjectTask[] = [
     { id: 5, name: 'Phase 2: Dashboard Development', start: 7, end: 10, dependencies: [2, 3], owner: 'DevOps', status: 'not-started' },
     { id: 6, name: 'UAT & Testing', start: 11, end: 11, dependencies: [4, 5], owner: 'PMO', status: 'not-started' },
     { id: 7, name: 'Go-Live & Rollout', start: 12, end: 12, dependencies: [6], owner: 'PMO', status: 'not-started' },
+];
+
+// Sample data. KPIs that can be derived from the other datasets are derived, so the dashboard is internally consistent.
+export const CRITICAL_RISK_THRESHOLD = 70;
+const openCriticalRisks = riskData.filter((r) => r.status === 'Open' && r.score > CRITICAL_RISK_THRESHOLD).length;
+const csfValues = Object.values(complianceData[0].controls);
+const csfAverage = Math.round(csfValues.reduce((a, b) => a + b, 0) / csfValues.length);
+
+export const kpiData: Kpi[] = [
+  { title: 'MTTD (Mean Time to Detect)', value: '45 mins', change: '-12%', changeType: 'decrease', description: 'vs. last 30 days' },
+  { title: 'MTTR (Mean Time to Respond)', value: '3.5 hours', change: '-8%', changeType: 'decrease', description: 'vs. last 30 days' },
+  { title: 'Control Coverage (NIST)', value: `${csfAverage}%`, change: '+3%', changeType: 'increase', description: 'mean of CSF functions' },
+  { title: 'Open Critical Risks', value: String(openCriticalRisks), change: '+1', changeType: 'increase', description: `open, score > ${CRITICAL_RISK_THRESHOLD}` },
 ];

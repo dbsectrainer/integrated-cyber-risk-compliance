@@ -9,6 +9,9 @@ const DataFlowBlock = ({ title, color }: { title: string; color: string }) => (
     </div>
 );
 
+// Explicit column order: never rely on object key order for table columns.
+const RACI_COLUMNS = ['ciso', 'pmo', 'soc', 'compliance', 'devops'] as const;
+
 const RacIChart: React.FC = () => {
     const getRaciStyle = (code: 'R' | 'A' | 'C' | 'I') => {
         switch (code) {
@@ -20,24 +23,24 @@ const RacIChart: React.FC = () => {
         }
     };
     return (
-        <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] text-center">
+        <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="RACI chart">
+            <table className="w-full min-w-[460px] text-center">
                 <thead className="text-sm text-gray-600 dark:text-gray-400">
                     <tr>
                         <th className="py-2 px-2 text-left">Activity</th>
-                        <th className="py-2 px-2">CISO</th>
-                        <th className="py-2 px-2">PMO</th>
-                        <th className="py-2 px-2">SOC</th>
-                        <th className="py-2 px-2">Compliance</th>
-                        <th className="py-2 px-2">DevOps</th>
+                        <th className="py-2 px-1">CISO</th>
+                        <th className="py-2 px-1">PMO</th>
+                        <th className="py-2 px-1">SOC</th>
+                        <th className="py-2 px-1">Compliance</th>
+                        <th className="py-2 px-1">DevOps</th>
                     </tr>
                 </thead>
                 <tbody>
                     {raciData.map((row) => (
                         <tr key={row.activity} className="border-t border-gray-200 dark:border-gray-700">
                             <td className="py-3 px-2 text-left font-medium">{row.activity}</td>
-                            {Object.values(row).slice(1).map((role, index) => (
-                                <td key={index} className="py-3 px-2">
+                            {RACI_COLUMNS.map((col) => [col, row[col]] as const).map(([col, role]) => (
+                                <td key={col} className="py-3 px-2">
                                     <span className={`inline-block w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm ${getRaciStyle(role as 'R' | 'A' | 'C' | 'I')}`}>
                                         {role}
                                     </span>

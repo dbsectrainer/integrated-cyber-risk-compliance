@@ -1,0 +1,205 @@
+{
+  "browser": "chromium",
+  "base": "http://localhost:4173",
+  "results": [
+    {
+      "name": "Dashboard renders KPI cards, incidents, radar chart",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Tailwind styles are bundled (sidebar has a background)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Sample-data label visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Verifier lists 3 controls",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Failing scenario: 3 failed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "CTRL-003 details show all 5 secret findings",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Secrets are masked in the DOM",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "K8s findings show real container names (not a placeholder)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Passing scenario: 3 passed / 100%",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Uploading a clean CI log flips CTRL-003 to PASS (2 failed)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Invalid uploaded Terraform JSON shows a clear error banner (no crash)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Uploaded Terraform plan with child modules is analysed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "CMMC tracker lists all 110 practices",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Domain filter AC → 22 practices",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Level 1 filter → 17 practices",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Search by NIST number finds SC.L2-3.13.16",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Marking a practice Implemented updates readiness (1%)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "…and Level 1 readiness (1/17 = 6%)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Status persists across reload (localStorage)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Reset all returns readiness to 0%",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "RACI header order is Activity,CISO,PMO,SOC,Compliance,DevOps",
+      "ok": true,
+      "detail": "Activity,CISO,PMO,SOC,Compliance,DevOps"
+    },
+    {
+      "name": "RACI \"Incident Triage & Response\" = CISO A, PMO I, SOC R, Compliance I, DevOps C",
+      "ok": true,
+      "detail": "Incident Triage & Response,A,I,R,I,C"
+    },
+    {
+      "name": "RACI \"Executive Reporting\" = CISO R, PMO A, SOC I, Compliance C, DevOps I",
+      "ok": true,
+      "detail": "Executive Reporting,R,A,I,C,I"
+    },
+    {
+      "name": "RACI chart fits without horizontal scrolling at 1440px",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Risk register default sort: highest score first",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Clicking Score reverses to ascending",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Sort headers are keyboard operable (Enter toggles back to descending)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Project Plan renders 7 tasks",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Executive deck: Next changes slide",
+      "ok": true,
+      "detail": "The Problem: Siloed Security & Compliance -> The Solution: Integrated Automation Framework (ICRAF)"
+    },
+    {
+      "name": "Dark mode toggles html.dark",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "axe-core: 0 serious/critical violations across all views (light + dark)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "axe-core: 0 violations of any impact",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Mobile dashboard: no page-level horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Mobile Verifier: no page-level horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Mobile CMMC Tracker: no page-level horizontal overflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Mobile icon-only sidebar links have accessible names",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Invalid upload was logged exactly once as a handled error",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "No console errors (excluding Google Fonts)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "No failed network requests (excluding Google Fonts)",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "consoleErrors": [
+    "CTRL-001 verification error: Error: Invalid Terraform plan: not valid JSON (Expected property name or '}' in JSON at position 1 (line 1 column 2))\n    at new mn (http://localhost:4173/assets/Verifier-wbSxZ_ar.js:11:5852)\n    at gn (http://localhost:4173/assets/Verifier-wbSxZ_ar.js:11:9036)\n    at http://localhost:4173/assets/Verifier-wbSxZ_ar.js:510:996\n    at a (http://localhost:4173/assets/Verifier-wbSxZ_ar.js:510:650)\n    at Ci (http://localhost:4173/assets/Verifier-wbSxZ_ar.js:510:934)\n    at http://localhost:4173/assets/Verifier-wbSxZ_ar.js:510:1311\n    at Object.Mv [as useMemo] (http://localhost:4173/assets/index-BSDwf_T8.js:49:58542)\n    at Q.useMemo (http://localhost:4173/assets/index-BSDwf_T8.js:18:7598)\n    at wi (http://localhost:4173/assets/Verifier-wbSxZ_ar.js:510:1299)\n    at Vc (http://localhost:4173/assets/index-BSDwf_T8.js:49:49593)"
+  ],
+  "failedRequests": []
+}

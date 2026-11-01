@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { kpiData, incidentData, complianceData } from '../data/mockData';
+import { integrationService } from '../services/integrationService';
 import KpiCard from './shared/KpiCard';
 import Card from './shared/Card';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, Legend } from 'recharts';
@@ -17,6 +18,23 @@ const SeverityIcon = ({ severity }: { severity: Incident['severity'] }) => {
 };
 
 const Dashboard: React.FC = () => {
+    const isLive = integrationService.isLiveMode();
+    const alerts = integrationService.getImportedAlerts();
+
+    const displayIncidents: Incident[] = useMemo(() => {
+        if (isLive && alerts.length > 0) {
+            return alerts.slice(0, 5).map((a) => ({
+                id: a.id,
+                title: a.title,
+                severity: a.severity,
+                status: 'Open',
+                source: 'SIEM',
+                timestamp: a.timestamp,
+            }));
+        }
+        return incidentData.slice(0, 5);
+    }, [isLive, alerts]);
+
     const chartData = Object.entries(complianceData[0].controls).map(([name, value]) => ({
         subject: name.charAt(0).toUpperCase() + name.slice(1),
         A: value,
@@ -33,31 +51,39 @@ const Dashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2">
-                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Recent High-Severity Incidents</h2>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Incidents</h2>
+                        {isLive && (
+                            <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                                Live Feeds Active
+                            </span>
+                        )}
+                    </div>
+                    <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Recent incidents table">
+                        <table className="w-full text-left" aria-label="Recent Incidents Table">
+                            <caption className="sr-only">Recent cybersecurity incidents and their status</caption>
                             <thead className="border-b border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-400">
                                 <tr>
-                                    <th className="py-2 px-4">Severity</th>
-                                    <th className="py-2 px-4">Title</th>
-                                    <th className="py-2 px-4">Status</th>
-                                    <th className="py-2 px-4">Source</th>
+                                    <th scope="col" className="py-2 px-4">Severity</th>
+                                    <th scope="col" className="py-2 px-4">Title</th>
+                                    <th scope="col" className="py-2 px-4">Status</th>
+                                    <th scope="col" className="py-2 px-4">Source</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {incidentData.slice(0, 5).map((incident) => (
+                                {displayIncidents.map((incident) => (
                                     <tr key={incident.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-900 dark:text-gray-200">
                                         <td className="py-3 px-4">
                                             <div className="flex items-center gap-2">
                                                 <SeverityIcon severity={incident.severity} />
-                                                <span className={`font-medium ${incident.severity === 'Critical' ? 'text-red-400' : 'text-yellow-400'}`}>{incident.severity}</span>
+                                                <span className={`font-medium ${incident.severity === 'Critical' ? 'text-red-700 dark:text-red-400' : 'text-yellow-800 dark:text-yellow-400'}`}>{incident.severity}</span>
                                             </div>
                                         </td>
                                         <td className="py-3 px-4">{incident.title}</td>
                                         <td className="py-3 px-4">
                                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                                incident.status === 'Open' ? 'bg-red-500/20 text-red-400' :
-                                                incident.status === 'In Progress' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'
+                                                incident.status === 'Open' ? 'bg-red-500/20 text-red-700 dark:text-red-400' :
+                                                incident.status === 'In Progress' ? 'bg-yellow-500/20 text-yellow-800 dark:text-yellow-400' : 'bg-green-500/20 text-green-800 dark:text-green-400'
                                             }`}>
                                                 {incident.status}
                                             </span>
@@ -72,6 +98,9 @@ const Dashboard: React.FC = () => {
 
                 <Card>
                     <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">NIST CSF Coverage</h2>
+                    <div className="sr-only">
+                        NIST CSF Function Coverage Scores: {chartData.map((c) => `${c.subject}: ${c.A}%`).join(', ')}.
+                    </div>
                     <div style={{ width: '100%', height: 300 }}>
                         <ResponsiveContainer>
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>

@@ -1,0 +1,72 @@
+[
+  {
+    "view": "Dashboard (light)",
+    "violations": [],
+    "passes": 38
+  },
+  {
+    "view": "Verifier (light)",
+    "violations": [],
+    "passes": 41
+  },
+  {
+    "view": "CMMC Tracker (light)",
+    "violations": [],
+    "passes": 41
+  },
+  {
+    "view": "Governance (light)",
+    "violations": [],
+    "passes": 37
+  },
+  {
+    "view": "Risk Register (light)",
+    "violations": [],
+    "passes": 36
+  },
+  {
+    "view": "Project Plan (light)",
+    "violations": [],
+    "passes": 26
+  },
+  {
+    "view": "Executive Deck (light)",
+    "violations": [],
+    "passes": 28
+  },
+  {
+    "view": "Dashboard (dark)",
+    "violations": [],
+    "passes": 38
+  },
+  {
+    "view": "Verifier (dark)",
+    "violations": [],
+    "passes": 39
+  },
+  {
+    "view": "CMMC Tracker (dark)",
+    "violations": [],
+    "passes": 41
+  },
+  {
+    "view": "Governance (dark)",
+    "violations": [],
+    "passes": 37
+  },
+  {
+    "view": "Risk Register (dark)",
+    "violations": [],
+    "passes": 36
+  },
+  {
+    "view": "Project Plan (dark)",
+    "violations": [],
+    "passes": 26
+  },
+  {
+    "view": "Executive Deck (dark)",
+    "violations": [],
+    "passes": 28
+  }
+]

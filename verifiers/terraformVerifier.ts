@@ -8,10 +8,13 @@ export interface TerraformPlan {
   format_version?: string;
   terraform_version?: string;
   planned_values: {
-    root_module: {
-      resources: TerraformResource[];
-    };
+    root_module: TerraformModule;
   };
+}
+
+export interface TerraformModule {
+  resources?: TerraformResource[];
+  child_modules?: TerraformModule[];
 }
 
 export interface TerraformResource {
@@ -21,7 +24,7 @@ export interface TerraformResource {
   name: string;
   provider_name: string;
   schema_version: number;
-  values: any;
+  values: Record<string, unknown> & { server_side_encryption?: { enabled?: boolean }[]; rule?: unknown[]; bucket?: string; encrypted?: boolean; storage_encrypted?: boolean };
 }
 
 export interface VerificationResult {
@@ -61,18 +64,38 @@ export class TerraformVerifier {
   private plan: TerraformPlan;
 
   constructor(planJson: string | TerraformPlan) {
+    let plan: unknown;
     if (typeof planJson === 'string') {
-      this.plan = JSON.parse(planJson);
+      try {
+        plan = JSON.parse(planJson);
+      } catch (e) {
+        throw new Error(`Invalid Terraform plan: not valid JSON (${e instanceof Error ? e.message : String(e)})`, { cause: e });
+      }
     } else {
-      this.plan = planJson;
+      plan = planJson;
     }
+    if (!plan || typeof plan !== 'object' || !(plan as TerraformPlan).planned_values?.root_module) {
+      throw new Error('Invalid Terraform plan: missing planned_values.root_module (expected output of `terraform show -json`)');
+    }
+    this.plan = plan as TerraformPlan;
+  }
+
+  /** All resources in the root module and, recursively, in child modules. */
+  private collectResources(): TerraformResource[] {
+    const out: TerraformResource[] = [];
+    const walk = (m: TerraformModule) => {
+      for (const r of m.resources ?? []) out.push({ ...r, values: r.values ?? {} });
+      for (const c of m.child_modules ?? []) walk(c);
+    };
+    walk(this.plan.planned_values.root_module);
+    return out;
   }
 
   /**
    * Verify encryption at rest for all storage resources
    */
   public verifyEncryptionAtRest(): VerificationResult {
-    const resources = this.plan.planned_values.root_module.resources;
+    const resources = this.collectResources();
     const storageResources = resources.filter((r) =>
       STORAGE_TYPES.includes(r.type)
     );
@@ -184,7 +207,7 @@ export class TerraformVerifier {
     return (
       table.values.server_side_encryption &&
       Array.isArray(table.values.server_side_encryption) &&
-      table.values.server_side_encryption.some((sse: any) => sse.enabled === true)
+      table.values.server_side_encryption.some((sse) => sse.enabled === true)
     );
   }
 

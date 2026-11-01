@@ -4,6 +4,8 @@
  * Framework Mapping: SOC2 CC8.1, HIPAA 164.312(c)(1), ISO 27001 A.12.5.1
  */
 
+import { loadAll } from 'js-yaml';
+
 export interface KubernetesResource {
   apiVersion: string;
   kind: string;
@@ -13,13 +15,24 @@ export interface KubernetesResource {
     annotations?: { [key: string]: string };
     labels?: { [key: string]: string };
   };
-  spec?: any;
+  spec?: PodSpecLike & { template?: PodTemplateLike; jobTemplate?: { spec?: { template?: PodTemplateLike } } };
 }
 
 export interface ContainerSpec {
   name: string;
   image: string;
   imagePullPolicy?: string;
+}
+
+interface ContainerLike { name?: string; image?: string }
+interface PodSpecLike { containers?: ContainerLike[]; initContainers?: ContainerLike[] }
+interface PodTemplateLike { metadata?: { annotations?: Record<string, unknown> }; spec?: PodSpecLike }
+
+interface WorkloadContainer {
+  name: string;
+  image: string;
+  /** Merged resource + pod-template annotations */
+  annotations: { [key: string]: string };
 }
 
 export interface ImageVerificationFinding {
@@ -51,81 +64,59 @@ export interface ImageVerificationResult {
 export class KubernetesVerifier {
   private resources: KubernetesResource[];
 
+  /** @throws Error when the input is not valid YAML */
   constructor(yamlContent: string) {
-    // Simple YAML parsing - in production, use a proper YAML parser
-    this.resources = this.parseYAML(yamlContent);
+    this.resources = KubernetesVerifier.parseYAML(yamlContent);
   }
 
-  /**
-   * Simple YAML parser (for demonstration - use js-yaml in production)
-   */
-  private parseYAML(yamlContent: string): KubernetesResource[] {
-    const resources: KubernetesResource[] = [];
-    const docs = yamlContent.split(/\n---\n/);
-
-    for (const doc of docs) {
-      if (doc.trim().length === 0) continue;
-
-      try {
-        // Extract basic fields using regex (simplified for demo)
-        const apiVersionMatch = doc.match(/apiVersion:\s*(.+)/);
-        const kindMatch = doc.match(/kind:\s*(.+)/);
-        const nameMatch = doc.match(/name:\s*(.+)/);
-        const namespaceMatch = doc.match(/namespace:\s*(.+)/);
-
-        if (!apiVersionMatch || !kindMatch || !nameMatch) continue;
-
-        const resource: KubernetesResource = {
-          apiVersion: apiVersionMatch[1].trim(),
-          kind: kindMatch[1].trim(),
-          metadata: {
-            name: nameMatch[1].trim(),
-            namespace: namespaceMatch ? namespaceMatch[1].trim() : 'default',
-          },
-        };
-
-        // Extract annotations
-        const annotationsMatch = doc.match(/annotations:([\s\S]*?)(?=\n\w|\nspec:|$)/);
-        if (annotationsMatch) {
-          resource.metadata.annotations = this.parseKeyValue(annotationsMatch[1]);
-        }
-
-        // Extract container images
-        const imageMatches = doc.matchAll(/image:\s*(.+)/g);
-        const images: string[] = [];
-        for (const match of imageMatches) {
-          images.push(match[1].trim());
-        }
-
-        if (images.length > 0) {
-          resource.spec = { images };
-        }
-
-        resources.push(resource);
-      } catch (error) {
-        // Skip malformed resources
-        continue;
-      }
+  private static parseYAML(yamlContent: string): KubernetesResource[] {
+    let docs: unknown[];
+    try {
+      docs = loadAll(yamlContent);
+    } catch (e) {
+      throw new Error(`Invalid Kubernetes YAML: ${e instanceof Error ? e.message.split('\n')[0] : String(e)}`, { cause: e });
     }
-
-    return resources;
+    return docs.filter(
+      (d): d is KubernetesResource =>
+        !!d && typeof d === 'object' && typeof (d as KubernetesResource).kind === 'string' && !!(d as KubernetesResource).metadata?.name
+    );
   }
 
-  /**
-   * Parse key-value pairs from YAML section
-   */
-  private parseKeyValue(text: string): { [key: string]: string } {
-    const result: { [key: string]: string } = {};
-    const lines = text.split('\n');
+  private static stringMap(v: unknown): { [key: string]: string } {
+    const out: { [key: string]: string } = {};
+    if (v && typeof v === 'object') for (const [k, val] of Object.entries(v)) out[k] = String(val);
+    return out;
+  }
 
-    for (const line of lines) {
-      const match = line.match(/^\s*([^:]+):\s*(.+)$/);
-      if (match) {
-        result[match[1].trim()] = match[2].trim().replace(/['"]/g, '');
-      }
+  /** Locate the pod spec/template for any supported workload kind. */
+  private static podParts(r: KubernetesResource): { spec?: PodSpecLike; templateMeta?: PodTemplateLike['metadata'] } | null {
+    switch (r.kind) {
+      case 'Pod':
+        return { spec: r.spec, templateMeta: undefined };
+      case 'CronJob':
+        return { spec: r.spec?.jobTemplate?.spec?.template?.spec, templateMeta: r.spec?.jobTemplate?.spec?.template?.metadata };
+      case 'Deployment':
+      case 'StatefulSet':
+      case 'DaemonSet':
+      case 'Job':
+      case 'ReplicaSet':
+        return { spec: r.spec?.template?.spec, templateMeta: r.spec?.template?.metadata };
+      default:
+        return null;
     }
+  }
 
-    return result;
+  private static containersOf(r: KubernetesResource): WorkloadContainer[] {
+    const parts = KubernetesVerifier.podParts(r);
+    if (!parts?.spec) return [];
+    const annotations = {
+      ...KubernetesVerifier.stringMap(r.metadata.annotations),
+      ...KubernetesVerifier.stringMap(parts.templateMeta?.annotations),
+    };
+    const list = [...(parts.spec.initContainers ?? []), ...(parts.spec.containers ?? [])];
+    return list.flatMap((c) =>
+      c && typeof c.image === 'string' ? [{ name: String(c.name ?? 'container'), image: c.image, annotations }] : []
+    );
   }
 
   /**
@@ -136,21 +127,11 @@ export class KubernetesVerifier {
     let totalImages = 0;
     let verifiedImages = 0;
 
-    // Check for workload resources
-    const workloadKinds = ['Deployment', 'StatefulSet', 'DaemonSet', 'Job', 'CronJob', 'Pod'];
-
     for (const resource of this.resources) {
-      if (!workloadKinds.includes(resource.kind)) continue;
-
-      const images = resource.spec?.images || [];
-
-      for (const image of images) {
+      for (const container of KubernetesVerifier.containersOf(resource)) {
         totalImages++;
 
-        const violations = this.checkImageCompliance(
-          image,
-          resource.metadata.annotations || {}
-        );
+        const violations = this.checkImageCompliance(container.image, container.annotations);
 
         if (violations.length === 0) {
           verifiedImages++;
@@ -160,8 +141,8 @@ export class KubernetesVerifier {
               resource_name: resource.metadata.name,
               resource_kind: resource.kind,
               namespace: resource.metadata.namespace || 'default',
-              container_name: 'container', // Simplified for demo
-              image,
+              container_name: container.name,
+              image: container.image,
               issue: violation.issue,
               severity: violation.severity,
               remediation: violation.remediation,

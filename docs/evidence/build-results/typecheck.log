@@ -1,0 +1,4 @@
+
+> icraf:-integrated-cyber-risk-&-compliance-dashboard@0.0.0 typecheck
+> tsc --noEmit
+

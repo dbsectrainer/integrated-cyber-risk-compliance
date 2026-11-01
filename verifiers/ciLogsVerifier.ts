@@ -41,7 +41,6 @@ export class CILogsVerifier {
    */
   public verifySecretsDetection(): SecretsVerificationResult {
     const findings: SecretFinding[] = [];
-    let filesScanned = 0;
     let buildStatus: 'SUCCESS' | 'FAILED' = 'SUCCESS';
 
     // Parse the log for secrets detection results
@@ -53,7 +52,7 @@ export class CILogsVerifier {
     }
 
     // Get files scanned count
-    filesScanned = this.getFilesScannedCount();
+    const filesScanned = this.getFilesScannedCount();
 
     const filesWithSecrets = new Set(findings.map((f) => f.file)).size;
 
@@ -88,7 +87,7 @@ export class CILogsVerifier {
 
     for (const line of this.logLines) {
       // Detect start of finding
-      if (line.includes('Finding')) {
+      if (/Finding\s+\d+:/.test(line)) {
         inFindingBlock = true;
         currentFinding = {};
         continue;
@@ -114,7 +113,7 @@ export class CILogsVerifier {
         }
 
         // Parse secret (preview)
-        const secretMatch = line.match(/Secret:\s*(.+)/);
+        const secretMatch = line.match(/(?:Secret|Pattern):\s*(.+)/);
         if (secretMatch) {
           const secret = secretMatch[1].trim();
           // Mask the secret for display
@@ -135,7 +134,8 @@ export class CILogsVerifier {
         }
 
         // Empty line ends finding block
-        if (line.trim() === '') {
+        // Empty log message (after the "[timestamp] LEVEL:" prefix) ends the block
+        if (line.replace(/^\[[^\]]*\]\s*\w+:/, '').trim() === '') {
           inFindingBlock = false;
         }
       }
