@@ -4,7 +4,7 @@ import { verifyTerraformPlan } from '../verifiers/terraformVerifier';
 import { verifyKubernetesManifests } from '../verifiers/kubernetesVerifier';
 import { verifyCILogs } from '../verifiers/ciLogsVerifier';
 import { raciData, riskData, kpiData, complianceData, projectPlanData, CRITICAL_RISK_THRESHOLD } from '../data/mockData';
-import { CMMC_DOMAINS, CMMC_PRACTICES } from '../data/cmmcPractices';
+import { CMMC_DOMAINS, CMMC_PRACTICES, ALL_CMMC_PRACTICES, CMMC_LEVEL_3_PRACTICES } from '../data/cmmcPractices';
 import { computeReadiness, sanitizeStatuses, StatusMap } from '../data/cmmcScore';
 
 const read = (p: string) => readFileSync(new URL(`../samples/${p}`, import.meta.url), 'utf8');
@@ -91,6 +91,16 @@ describe('cmmc data and scoring', () => {
   it('matches the official per-domain counts', () => {
     const expected: Record<string, number> = { AC: 22, AT: 3, AU: 9, CM: 9, IA: 11, IR: 3, MA: 6, MP: 9, PS: 2, PE: 6, RA: 3, CA: 4, SC: 16, SI: 7 };
     for (const [d, n] of Object.entries(expected)) expect(CMMC_PRACTICES.filter((p) => p.domain === d)).toHaveLength(n);
+  });
+  it('includes 24 enhanced Level 3 practices for a total of 134 across all levels', () => {
+    expect(CMMC_LEVEL_3_PRACTICES).toHaveLength(24);
+    expect(ALL_CMMC_PRACTICES).toHaveLength(134);
+    expect(new Set(ALL_CMMC_PRACTICES.map((p) => p.id)).size).toBe(134);
+    for (const p of CMMC_LEVEL_3_PRACTICES) {
+      expect(p.level).toBe(3);
+      expect(p.assessmentGuideRef).toBeDefined();
+      expect(p.assessmentMethod).toBeDefined();
+    }
   });
   it('computes readiness, excluding not-applicable practices', () => {
     expect(computeReadiness({}).percent).toBe(0);

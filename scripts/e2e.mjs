@@ -4,13 +4,60 @@
 // Env: BROWSER=chromium|firefox|webkit (default chromium; the browser must be installed)
 //      SHOTS=0 to skip writing screenshots/result files (used for non-primary browsers)
 import { spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, mkdirSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import playwright from 'playwright';
 
 const browserName = process.env.BROWSER || 'chromium';
 const writeEvidence = process.env.SHOTS !== '0';
 const shots = 'docs/evidence/screenshots';
 if (writeEvidence) mkdirSync(shots, { recursive: true });
+
+function findExecutable(browser) {
+  if (process.env.PLAYWRIGHT_EXECUTABLE_PATH) {
+    return process.env.PLAYWRIGHT_EXECUTABLE_PATH;
+  }
+  const home = os.homedir();
+  const cacheDir = path.join(home, 'Library/Caches/ms-playwright');
+  if (existsSync(cacheDir)) {
+    const entries = readdirSync(cacheDir);
+    if (browser === 'chromium') {
+      for (const entry of entries) {
+        if (entry.startsWith('chromium_headless_shell-')) {
+          const p1 = path.join(cacheDir, entry, 'chrome-mac/headless_shell');
+          if (existsSync(p1)) return p1;
+          const p2 = path.join(cacheDir, entry, 'chrome-headless-shell-mac-arm64/chrome-headless-shell');
+          if (existsSync(p2)) return p2;
+        }
+      }
+      for (const entry of entries) {
+        if (entry.startsWith('chromium-')) {
+          const p = path.join(cacheDir, entry, 'chrome-mac/Chromium.app/Contents/MacOS/Chromium');
+          if (existsSync(p)) return p;
+        }
+      }
+      if (existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')) {
+        return '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+      }
+    } else if (browser === 'firefox') {
+      for (const entry of entries) {
+        if (entry.startsWith('firefox-')) {
+          const p = path.join(cacheDir, entry, 'firefox/Nightly.app/Contents/MacOS/firefox');
+          if (existsSync(p)) return p;
+        }
+      }
+    } else if (browser === 'webkit') {
+      for (const entry of entries) {
+        if (entry.startsWith('webkit-')) {
+          const p = path.join(cacheDir, entry, 'Playwright.app/Contents/MacOS/Playwright');
+          if (existsSync(p)) return p;
+        }
+      }
+    }
+  }
+  return undefined;
+}
 
 let server;
 let base = process.argv[2];
@@ -34,7 +81,24 @@ const check = (name, ok, detail = '') => {
 };
 const shot = async (p, name, opts = {}) => { if (writeEvidence) await p.screenshot({ path: `${shots}/${name}.png`, ...opts }); };
 
-const browser = await playwright[browserName].launch();
+const launchOpts = {};
+const detectedExec = findExecutable(browserName);
+if (detectedExec) {
+  launchOpts.executablePath = detectedExec;
+}
+
+let browser;
+try {
+  browser = await playwright[browserName].launch(launchOpts);
+} catch (err) {
+  console.error(`Failed to launch browser "${browserName}": ${err.message}`);
+  if (browserName === 'firefox' || browserName === 'webkit') {
+    console.error(`\nNOTE: ${browserName} was blocked from download or sandboxed socket binding.`);
+    console.error(`To enable downloads, allow 'cdn.playwright.dev' in network policy.`);
+  }
+  server?.kill();
+  process.exit(1);
+}
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: 'light' });
 const page = await ctx.newPage();
 page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
@@ -62,6 +126,8 @@ check('Dashboard renders KPI cards, incidents, radar chart',
 check('Tailwind styles are bundled (sidebar has a background)',
   (await page.locator('aside').evaluate((e) => getComputedStyle(e).backgroundColor)) !== 'rgba(0, 0, 0, 0)');
 check('Sample-data label visible', await page.getByText('sample data').isVisible());
+check('Accessible skip-link and live announcer present',
+  (await page.locator('a[href="#main-content"]').count()) === 1 && (await page.locator('#a11y-announcements').count()) === 1);
 await shot(page, 'dashboard-desktop');
 await axeScan(page, 'Dashboard (light)');
 
@@ -139,6 +205,14 @@ page.once('dialog', (d) => d.accept());
 await page.getByRole('button', { name: 'Reset all' }).click();
 check('Reset all returns readiness to 0%', (await page.getByTestId('l2-percent').innerText()) === '0%');
 
+// ---------- Integrations
+await nav(page, 'Integrations');
+await page.getByRole('heading', { name: 'External Integrations Hub' }).waitFor();
+await settle(page);
+check('Integrations hub renders connectors', (await page.getByText(/Splunk Enterprise Security|Elastic Security/).count()) > 0);
+await shot(page, 'integrations-desktop', { fullPage: true });
+await axeScan(page, 'Integrations (light)');
+
 // ---------- Governance (RACI column correctness)
 await nav(page, 'Governance');
 await page.getByRole('heading', { name: 'RACI Chart' }).waitFor();
@@ -191,7 +265,7 @@ check('Dark mode toggles html.dark', await page.evaluate(() => document.document
 await settle(page);
 await shot(page, 'dashboard-dark');
 await axeScan(page, 'Dashboard (dark)');
-for (const [label, name] of [['Verifier', 'Verifier'], ['CMMC Tracker', 'CMMC Tracker'], ['Governance', 'Governance'], ['Risk Register', 'Risk Register'], ['Project Plan', 'Project Plan'], ['Executive Deck', 'Executive Deck']]) {
+for (const [label, name] of [['Verifier', 'Verifier'], ['CMMC Tracker', 'CMMC Tracker'], ['Integrations', 'Integrations'], ['Governance', 'Governance'], ['Risk Register', 'Risk Register'], ['Project Plan', 'Project Plan'], ['Executive Deck', 'Executive Deck']]) {
   await nav(page, label);
   await settle(page);
   await axeScan(page, `${name} (dark)`);

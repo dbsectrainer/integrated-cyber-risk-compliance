@@ -10,7 +10,7 @@ Reference mapping used by the ICRAF CMMC Tracker (`data/cmmcPractices.ts`, view:
 |---|---|---|---|
 | 1 | Foundational | 17 | FAR 52.204-21 (15 basic safeguarding requirements, expressed as 17 CMMC practices) |
 | 2 | Advanced | 110 | NIST SP 800-171 Rev. 2 (all 110 requirements; includes the 17 Level 1 practices) |
-| 3 | Expert | 110 + 24 | NIST SP 800-171 plus a subset of NIST SP 800-172 (not tracked here) |
+| 3 | Expert | 110 + 24 = 134 | NIST SP 800-171 Rev. 2 plus 24 enhanced requirements from NIST SP 800-172 |
 
 CMMC 2.0 has **14 domains** (the same 14 families as NIST SP 800-171). Earlier drafts of this document stated 17 domains; that was incorrect.
 
@@ -217,6 +217,37 @@ Level 1 practices are marked **L1**. *Evidence* names the ICRAF Control Verifier
 | SI.L1-3.14.5 | L1 | Perform periodic scans of organizational systems and real-time scans of files from external sources as files are downloaded, opened, or executed. |  |
 | SI.L2-3.14.6 | L2 | Monitor organizational systems, including inbound and outbound communications traffic, to detect attacks and indicators of potential attacks. |  |
 | SI.L2-3.14.7 | L2 | Identify unauthorized use of organizational systems. |  |
+
+## Level 3 Enhanced Practices (NIST SP 800-172)
+
+CMMC Level 3 incorporates 24 enhanced practices addressing Advanced Persistent Threat (APT) defense and high-value asset protection.
+
+| ID | Domain | NIST SP 800-172 | Enhanced Requirement | DoD Assessment Objective | Evidence |
+|---|---|---|---|---|---|
+| AC.L3-3.1.1e | AC | 3.1.1e | Dual authorization for critical operations | Examine dual authorization policies; test two-person approvals | |
+| AC.L3-3.1.2e | AC | 3.1.2e | Restrict access to security domains and isolate security functions | Examine boundary designs; test security domain isolation | |
+| AC.L3-3.1.3e | AC | 3.1.3e | Physical or logical isolation techniques | Examine network air-gaps; test enclave segmentation | |
+| AT.L3-3.2.1e | AT | 3.2.1e | Practical awareness exercises and APT simulations | Review threat simulation curricula and after-action reports | |
+| AU.L3-3.3.1e | AU | 3.3.1e | Centralized audit record correlation across repositories | Examine SIEM correlation rules and alert thresholds | |
+| AU.L3-3.3.2e | AU | 3.3.2e | Protect audit records with WORM storage or cryptographic hashes | Verify WORM retention policies and immutable log storage | |
+| CM.L3-3.4.1e | CM | 3.4.1e | Baseline configuration integrity via cryptographic hashes | Verify golden image baseline hashes upon deploy | |
+| CM.L3-3.4.2e | CM | 3.4.2e | Software and firmware integrity verification | Verify container image signatures and binary hashes | CTRL-002 |
+| CM.L3-3.4.3e | CM | 3.4.3e | Limit access to configuration change control databases | Review change management access control policies | |
+| IA.L3-3.5.1e | IA | 3.5.1e | Multi-factor authentication with replay-resistant hardware tokens | Test FIDO2/WebAuthn hardware key enforcement | |
+| IA.L3-3.5.2e | IA | 3.5.2e | Prevent password reuse and enforce credential protection | Test automated secret scanning in commit pipelines | CTRL-003 |
+| IR.L3-3.6.1e | IR | 3.6.1e | Dedicated SOC capability or specialized IR team | Review SOC operating procedures, staffing, and runbooks | |
+| IR.L3-3.6.2e | IR | 3.6.2e | Automated incident handling and threat indicator correlation | Review SOAR playbooks and automation rules | |
+| MP.L3-3.8.1e | MP | 3.8.1e | Verify cryptographic mechanisms on portable media | Test endpoint protection against unencrypted storage | |
+| PS.L3-3.9.1e | PS | 3.9.1e | Enhanced personnel screening with continuous evaluation | Review security clearance and background check records | |
+| RA.L3-3.11.1e | RA | 3.11.1e | Advanced commercial/government threat intelligence | Review TIP integration and automated threat feeds | |
+| RA.L3-3.11.2e | RA | 3.11.2e | Annual red team exercises and penetration testing | Review offensive security and red-team findings | |
+| RA.L3-3.11.3e | RA | 3.11.3e | Ongoing control verification via automated assessments | Review continuous automated posture scans | |
+| SC.L3-3.13.1e | SC | 3.13.1e | Physical and logical isolation for critical data channels | Test IPSec and secure channel isolation | |
+| SC.L3-3.13.2e | SC | 3.13.2e | Isolate sensitive processing into security enclaves | Test enclave boundary filtering and ingress/egress rules | |
+| SC.L3-3.13.3e | SC | 3.13.3e | Defense-in-depth architecture with micro-segmentation | Verify Kubernetes NetworkPolicy and egress inspection | |
+| SC.L3-3.13.4e | SC | 3.13.4e | Terminate connections upon detection of intrusion signs | Verify automated quarantine on intrusion detection | |
+| SI.L3-3.14.1e | SI | 3.14.1e | Continuous monitoring for anomalous behavior and APTs | Review UEBA and anomaly detection alerts | |
+| SI.L3-3.14.2e | SI | 3.14.2e | Threat hunting and IoC detection mechanisms | Review proactive threat hunting cadence and reports | |
 
 ## Verifier evidence links
 

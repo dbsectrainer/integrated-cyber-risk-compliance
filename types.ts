@@ -6,6 +6,7 @@ export enum View {
   Presentation = 'PRESENTATION',
   Verifier = 'VERIFIER',
   Cmmc = 'CMMC',
+  Integrations = 'INTEGRATIONS',
 }
 
 export interface Kpi {

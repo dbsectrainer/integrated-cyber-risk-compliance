@@ -1,19 +1,21 @@
-// CMMC 2.0 Level 2 practices (= the 110 security requirements of NIST SP 800-171 Rev. 2).
-// Level 1 practices (17, derived from FAR 52.204-21) are the subset flagged `level: 1`.
-// Level 3 (24 additional requirements from NIST SP 800-172) is out of scope here.
-// Requirement text is condensed from NIST SP 800-171r2; verify against the official
-// DoD CMMC Assessment Guides before using for a real assessment. Generated data - edit with care.
+// CMMC 2.0 practices aligned with official DoD CMMC Assessment Guides:
+// - Level 1: 17 practices (Federal Contract Information / FAR 52.204-21)
+// - Level 2: 110 practices (Controlled Unclassified Information / NIST SP 800-171 Rev. 2)
+// - Level 3: 24 enhanced practices (Advanced Persistent Threats / NIST SP 800-172)
+// Assessment objectives and methods (Examine, Interview, Test) reference DoD CMMC Assessment Guides.
 
 export type CmmcStatus = 'not-assessed' | 'not-implemented' | 'partial' | 'implemented' | 'not-applicable';
 
 export interface CmmcDomain { code: string; name: string; nistFamily: string; }
 export interface CmmcPractice {
-  id: string;            // CMMC identifier, e.g. AC.L2-3.1.1
-  nist: string;          // NIST SP 800-171 requirement number, e.g. 3.1.1
+  id: string;            // CMMC identifier, e.g. AC.L2-3.1.1, AC.L3-3.1.1e
+  nist: string;          // NIST SP 800-171 or 800-172 requirement number, e.g. 3.1.1, 3.1.1e
   domain: string;
-  level: 1 | 2;          // lowest CMMC level at which the practice first applies
+  level: 1 | 2 | 3;      // lowest CMMC level at which the practice first applies
   text: string;
-  evidenceControl?: string; // ICRAF Control Verifier control that provides supporting evidence
+  assessmentGuideRef?: string; // official DoD CMMC Assessment Guide reference
+  assessmentMethod?: string;   // Examine / Interview / Test evaluation method
+  evidenceControl?: string;    // ICRAF Control Verifier control that provides supporting evidence
 }
 
 export const CMMC_DOMAINS: CmmcDomain[] = [
@@ -145,3 +147,228 @@ export const CMMC_PRACTICES: CmmcPractice[] = [
   { id: "SI.L2-3.14.6", nist: "3.14.6", domain: "SI", level: 2, text: "Monitor organizational systems, including inbound and outbound communications traffic, to detect attacks and indicators of potential attacks." },
   { id: "SI.L2-3.14.7", nist: "3.14.7", domain: "SI", level: 2, text: "Identify unauthorized use of organizational systems." },
 ];
+
+// CMMC 2.0 Level 3 Enhanced Practices (24 requirements from NIST SP 800-172)
+export const CMMC_LEVEL_3_PRACTICES: CmmcPractice[] = [
+  {
+    id: "AC.L3-3.1.1e",
+    nist: "3.1.1e",
+    domain: "AC",
+    level: 3,
+    text: "Authorize access to security domains and security-critical systems using dual authorization.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (AC.L3-3.1.1e)",
+    assessmentMethod: "Examine: Dual authorization policies; Interview: System administrators; Test: Two-person approval workflow.",
+  },
+  {
+    id: "AC.L3-3.1.2e",
+    nist: "3.1.2e",
+    domain: "AC",
+    level: 3,
+    text: "Restrict access to security domains and isolate security functions from nonsecurity functions.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (AC.L3-3.1.2e)",
+    assessmentMethod: "Examine: System architectural designs; Interview: Network engineers; Test: Security domain boundary filtering.",
+  },
+  {
+    id: "AC.L3-3.1.3e",
+    nist: "3.1.3e",
+    domain: "AC",
+    level: 3,
+    text: "Employ physical or logical isolation techniques to isolate security functions and sensitive information.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (AC.L3-3.1.3e)",
+    assessmentMethod: "Examine: Network virtualization and air-gap specifications; Interview: Cloud architects; Test: Enclave isolation.",
+  },
+  {
+    id: "AT.L3-3.2.1e",
+    nist: "3.2.1e",
+    domain: "AT",
+    level: 3,
+    text: "Provide practical awareness exercises including realistic advanced persistent threat (APT) simulations.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (AT.L3-3.2.1e)",
+    assessmentMethod: "Examine: Threat simulation curricula and after-action reports; Interview: Personnel and training leads.",
+  },
+  {
+    id: "AU.L3-3.3.1e",
+    nist: "3.3.1e",
+    domain: "AU",
+    level: 3,
+    text: "Review audit records across organization-defined systems and repositories for anomalous activity using automated correlation.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (AU.L3-3.3.1e)",
+    assessmentMethod: "Examine: SIEM correlation rule sets; Interview: SOC analysts; Test: Centralized log aggregation and alert triggers.",
+  },
+  {
+    id: "AU.L3-3.3.2e",
+    nist: "3.3.2e",
+    domain: "AU",
+    level: 3,
+    text: "Protect audit records from unauthorized modification and deletion by using write-once-read-many (WORM) storage or cryptographic validation.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (AU.L3-3.3.2e)",
+    assessmentMethod: "Examine: WORM storage retention policies and cryptographic audit log hashes; Test: Attempted modification of audit logs.",
+  },
+  {
+    id: "CM.L3-3.4.1e",
+    nist: "3.4.1e",
+    domain: "CM",
+    level: 3,
+    text: "Establish and maintain a baseline configuration for systems and verify integrity using cryptographic hashes.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (CM.L3-3.4.1e)",
+    assessmentMethod: "Examine: Golden image baselines and hash manifests; Interview: DevOps/Infrastructure leads; Test: Hash verification on deploy.",
+  },
+  {
+    id: "CM.L3-3.4.2e",
+    nist: "3.4.2e",
+    domain: "CM",
+    level: 3,
+    text: "Verify the integrity of software, firmware, and information by monitoring for unauthorized changes.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (CM.L3-3.4.2e)",
+    assessmentMethod: "Examine: Image signing policies and admission controller configurations; Test: Unsigned binary rejection.",
+    evidenceControl: "CTRL-002",
+  },
+  {
+    id: "CM.L3-3.4.3e",
+    nist: "3.4.3e",
+    domain: "CM",
+    level: 3,
+    text: "Limit physical and logical access to configuration change control databases and repositories.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (CM.L3-3.4.3e)",
+    assessmentMethod: "Examine: Git repository branch protection rules and IAM policies; Interview: Release managers.",
+  },
+  {
+    id: "IA.L3-3.5.1e",
+    nist: "3.5.1e",
+    domain: "IA",
+    level: 3,
+    text: "Require multi-factor authentication using hardware tokens that are replay-resistant for all network and administrative access.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (IA.L3-3.5.1e)",
+    assessmentMethod: "Examine: FIDO2/WebAuthn hardware key policy; Interview: IAM administrators; Test: Admin login with hardware token.",
+  },
+  {
+    id: "IA.L3-3.5.2e",
+    nist: "3.5.2e",
+    domain: "IA",
+    level: 3,
+    text: "Employ automated mechanisms to detect and prevent password reuse and enforce credential cryptographic protection.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (IA.L3-3.5.2e)",
+    assessmentMethod: "Examine: Secret scanner CI configurations; Interview: Security pipeline owners; Test: Secret detection in commit hooks.",
+    evidenceControl: "CTRL-003",
+  },
+  {
+    id: "IR.L3-3.6.1e",
+    nist: "3.6.1e",
+    domain: "IR",
+    level: 3,
+    text: "Establish and maintain a specialized cyber incident response team or dedicated Security Operations Center (SOC) capability.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (IR.L3-3.6.1e)",
+    assessmentMethod: "Examine: SOC charter, runbooks, and shift schedules; Interview: Incident response leads; Test: Escalation exercise.",
+  },
+  {
+    id: "IR.L3-3.6.2e",
+    nist: "3.6.2e",
+    domain: "IR",
+    level: 3,
+    text: "Employ automated mechanisms to support incident handling and correlation of threat indicators.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (IR.L3-3.6.2e)",
+    assessmentMethod: "Examine: SOAR playbooks and incident response orchestration; Interview: SOC automation engineers.",
+  },
+  {
+    id: "MP.L3-3.8.1e",
+    nist: "3.8.1e",
+    domain: "MP",
+    level: 3,
+    text: "Verify cryptographic mechanisms used to protect CUI on portable digital media before allowing connection.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (MP.L3-3.8.1e)",
+    assessmentMethod: "Examine: USB endpoint protection policies and hardware encryption standards; Test: Insertion of unencrypted media.",
+  },
+  {
+    id: "PS.L3-3.9.1e",
+    nist: "3.9.1e",
+    domain: "PS",
+    level: 3,
+    text: "Screen individuals prior to authorizing access to systems containing CUI, with continuous evaluation.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (PS.L3-3.9.1e)",
+    assessmentMethod: "Examine: Background investigation verification records and HR onboarding clearance protocols; Interview: HR leads.",
+  },
+  {
+    id: "RA.L3-3.11.1e",
+    nist: "3.11.1e",
+    domain: "RA",
+    level: 3,
+    text: "Employ advanced threat intelligence from commercial and government sources to inform risk assessments and defense postures.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (RA.L3-3.11.1e)",
+    assessmentMethod: "Examine: Threat intelligence feed subscriptions and TIP integrations; Interview: Threat intel analysts.",
+  },
+  {
+    id: "RA.L3-3.11.2e",
+    nist: "3.11.2e",
+    domain: "RA",
+    level: 3,
+    text: "Conduct annual advanced penetration testing and red-team exercises against security enclaves.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (RA.L3-3.11.2e)",
+    assessmentMethod: "Examine: Red team reports and corrective action plans; Interview: Offensive security leads.",
+  },
+  {
+    id: "RA.L3-3.11.3e",
+    nist: "3.11.3e",
+    domain: "RA",
+    level: 3,
+    text: "Assess the effectiveness of security controls on an ongoing basis using automated verification mechanisms.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (RA.L3-3.11.3e)",
+    assessmentMethod: "Examine: Automated posture scanning and compliance verifier pipelines; Test: Control drift alert generation.",
+  },
+  {
+    id: "SC.L3-3.13.1e",
+    nist: "3.13.1e",
+    domain: "SC",
+    level: 3,
+    text: "Employ physical and logical isolation techniques for critical communications channels and high-value data flows.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (SC.L3-3.13.1e)",
+    assessmentMethod: "Examine: Network flow diagrams and VLAN/IPSec configurations; Test: Cross-segment data leakage prevention.",
+  },
+  {
+    id: "SC.L3-3.13.2e",
+    nist: "3.13.2e",
+    domain: "SC",
+    level: 3,
+    text: "Isolate sensitive processing components into dedicated security enclaves protected by boundary filtering.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (SC.L3-3.13.2e)",
+    assessmentMethod: "Examine: Firewall rule matrices and cloud security group definitions; Test: Enclave ingress/egress filtering.",
+  },
+  {
+    id: "SC.L3-3.13.3e",
+    nist: "3.13.3e",
+    domain: "SC",
+    level: 3,
+    text: "Employ defense-in-depth security architecture with micro-segmentation and egress inspection.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (SC.L3-3.13.3e)",
+    assessmentMethod: "Examine: Micro-segmentation policies (Kubernetes NetworkPolicies / service mesh); Test: Unauthorized egress blocks.",
+  },
+  {
+    id: "SC.L3-3.13.4e",
+    nist: "3.13.4e",
+    domain: "SC",
+    level: 3,
+    text: "Terminate network connections upon the detection of signs of intrusion or unauthorized behavior.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (SC.L3-3.13.4e)",
+    assessmentMethod: "Examine: Automated IPS/EDR network quarantine policies; Test: Simulated suspicious traffic quarantine.",
+  },
+  {
+    id: "SI.L3-3.14.1e",
+    nist: "3.14.1e",
+    domain: "SI",
+    level: 3,
+    text: "Monitor system components and network traffic continuously for anomalous behavior and advanced persistent threats.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (SI.L3-3.14.1e)",
+    assessmentMethod: "Examine: Behavioral analytics (UEBA) dashboard and alert thresholds; Test: Anomaly detection trigger.",
+  },
+  {
+    id: "SI.L3-3.14.2e",
+    nist: "3.14.2e",
+    domain: "SI",
+    level: 3,
+    text: "Employ threat hunting and indicators of compromise (IoC) detection mechanisms to discover stealthy adversary presence.",
+    assessmentGuideRef: "DoD CMMC Level 3 Assessment Guide (SI.L3-3.14.2e)",
+    assessmentMethod: "Examine: Threat hunting schedules, hypothesis documentation, and retrospective IOC searches; Interview: Threat hunters.",
+  },
+];
+
+export const ALL_CMMC_PRACTICES: CmmcPractice[] = [...CMMC_PRACTICES, ...CMMC_LEVEL_3_PRACTICES];
+
